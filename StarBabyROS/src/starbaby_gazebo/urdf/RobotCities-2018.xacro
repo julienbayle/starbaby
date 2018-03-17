@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<robot name="robot_cities_2018" xmlns:xacro="http://ros.org/wiki/xacro">
+
+    <link name="world"/>
+
+	<link name="robot_cities_2018">
+		<visual>
+			<geometry>
+				<mesh filename="package://starbaby_gazebo/meshes/RobotCities-2018-full.stl" scale="0.001 0.001 0.001"/>
+			</geometry>
+    		<origin xyz="-0.489 -1.522 0.0" rpy="${pi/ 2} 0 ${pi/ 2}"/>
+		</visual>
+		<collision>
+			<geometry>
+				<mesh filename="package://starbaby_gazebo/meshes/RobotCities-2018-full.stl" scale="0.001 0.001 0.001"/>
+			</geometry>
+    		<origin xyz="-0.489 -1.522 0.0" rpy="${pi/ 2} 0 ${pi/ 2}"/>
+		</collision>
+        <inertial>
+			<mass value="100.0"/>
+			<inertia ixx="1" ixy="0.0" ixz="0.0" iyy="1" iyz="0.0" izz="1"/>
+        </inertial>
+	</link>
+
+	<gazebo reference="robot_cities_2018">
+		<mu1>Inf</mu1>
+		<mu2>Inf</mu2>
+		<material>Gazebo/Orange</material>
+		<static>true</static>
+	</gazebo>
+    
+    <joint name="world_to_robot_cities_2018" type="fixed">
+	    <parent link="world"/>
+	    <child link="robot_cities_2018"/>
+    	<origin xyz="0 0 0" rpy="0 0 0"/>
+	</joint>
+</robot>

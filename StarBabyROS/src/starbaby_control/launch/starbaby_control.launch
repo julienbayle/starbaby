@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+	<rosparam file="$(find starbaby_control)/config/starbaby_control.yaml" command="load"/>
+	
+	<!-- Launch joint state publisher controller -->
+	<node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
+		output="screen" ns="/starbaby" args="
+			joint_state_controller
+			mobile_base_controller
+			--timeout 2400
+	"/>
+	
+	<!-- Combine joint values -->
+	<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"
+			respawn="false" output="screen" ns="/starbaby">
+		<remap from="/starbaby" to="/starbaby/joint_states" />
+	</node>
+</launch>
