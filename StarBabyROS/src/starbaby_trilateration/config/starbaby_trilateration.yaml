@@ -1,0 +1,9 @@
+starbaby:
+  starbaby_trilateration:
+    laser_scan_filters:
+      - name: intensity
+        type: LaserScanIntensityFilter
+        params:
+          lower_threshold: 90
+          upper_threshold: 110
+          disp_histogram: 0

@@ -1,0 +1,7 @@
+<launch>
+	<rosparam file="$(find starbaby_localization)/config/starbaby_localization.yaml" command="load"/>
+	
+	<node pkg="robot_localization" type="ukf_localization_node" name="starbaby_localization" clear_params="true" ns="starbaby">
+	</node>
+	
+</launch>

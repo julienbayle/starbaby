@@ -39,6 +39,14 @@
 	<include file="$(find starbaby_control)/launch/starbaby_control.launch">
 	</include>
 	
+	<!-- Trilateration  -->
+	<include file="$(find starbaby_trilateration)/launch/starbaby_trilateration.launch">
+	</include>
+	
+	<!-- Localization  -->
+	<include file="$(find starbaby_localization)/launch/starbaby_localization.launch">
+	</include>
+	
 	<!-- Teleop  -->
 	<include file="$(find starbaby_teleop)/launch/starbaby_teleop.launch">
 	</include>

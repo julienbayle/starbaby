@@ -1,0 +1,7 @@
+<launch>
+	<rosparam file="$(find starbaby_trilateration)/config/starbaby_trilateration.yaml" command="load"/>
+	
+	<node pkg="starbaby_trilateration" type="starbaby_trilateration_node" name="starbaby_trilateration" ns="starbaby">
+		<remap from="starbaby_trilateration/laser_scan" to="laser/scan"/>
+	</node>
+</launch>
