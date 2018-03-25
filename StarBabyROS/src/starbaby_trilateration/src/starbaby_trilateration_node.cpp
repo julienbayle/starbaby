@@ -11,7 +11,9 @@
 #include <laser_geometry/laser_geometry.h>
 #include <tf/tf.h>
 #include <tf/transform_listener.h>
+#include <tf/transform_broadcaster.h>
 
+#include <pcl/filters/passthrough.h>
 #include <pcl/point_types.h>
 #include <pcl/kdtree/kdtree.h>
 #include <pcl/segmentation/sac_segmentation.h>
@@ -24,13 +26,21 @@
 
 #include <boost/shared_ptr.hpp>
 
-boost::shared_ptr<filters::FilterChain<sensor_msgs::LaserScan> > laser_scan_filter_chain;
+#include <dynamic_reconfigure/server.h>
+#include <starbaby_trilateration/TrilaterationConfig.h>
+
+double min_intensity_;
 
 boost::shared_ptr<tf::TransformListener> tf_listener;
+boost::shared_ptr<tf::TransformBroadcaster> tf_broadcaster;
 boost::shared_ptr<laser_geometry::LaserProjection> laser_projection;
 
 ros::Publisher filtered_points_publisher;
 ros::Publisher estimated_pos_publisher;
+
+void callback(starbaby_trilateration::TrilaterationConfig &config, uint32_t level) {
+	min_intensity_ = config.min_intensity;
+}
 
 sensor_msgs::LaserScanConstPtr last_scan;
 
@@ -42,27 +52,42 @@ void handle_scan() {
 	if (last_scan) {
 		sensor_msgs::LaserScanConstPtr scan = last_scan;
 
-		sensor_msgs::LaserScan filtered_scan;
+		/*sensor_msgs::LaserScan filtered_scan;
 
 		// Keep only scans with intensity above threshold
-		laser_scan_filter_chain->update (*scan, filtered_scan);
+		laser_scan_filter_chain->update (*scan, filtered_scan);*/
 
-		/*// Convert scan to point cloud in the odom frame
+		// Get transform from lidar link to the odom frame
 		if(!tf_listener->waitForTransform(
-				scan->header.frame_id,
 				"odom",
+				scan->header.frame_id,
 				scan->header.stamp + ros::Duration().fromSec(scan->ranges.size()*scan->time_increment),
 				ros::Duration(1.0))){
 			return;
-		}*/
+		}
+
+		tf::StampedTransform odom_to_laser_transform;
+		tf_listener->lookupTransform(
+				"odom",
+				scan->header.frame_id,
+				scan->header.stamp + ros::Duration().fromSec(scan->ranges.size()*scan->time_increment),
+				odom_to_laser_transform);
 
 		// Create point cloud
 		sensor_msgs::PointCloud2 cloud_msg;
-		laser_projection->transformLaserScanToPointCloud(scan->header.frame_id, filtered_scan, cloud_msg, *tf_listener);
+		laser_projection->transformLaserScanToPointCloud(scan->header.frame_id, *scan, cloud_msg, *tf_listener);
 
 		// Container for original & filtered PCL data
 		pcl::PointCloud<pcl::PointXYZI>::Ptr pcl_cloud(new pcl::PointCloud<pcl::PointXYZI>());
 		pcl::fromROSMsg(cloud_msg, *pcl_cloud);
+
+		// Filter points using intensity
+		pcl::PassThrough<pcl::PointXYZI> ptfilter(false);
+		ptfilter.setInputCloud(pcl_cloud);
+		ptfilter.setFilterFieldName ("intensity");
+		ptfilter.setFilterLimits (min_intensity_, FLT_MAX);
+		ptfilter.setNegative (false);
+		ptfilter.filter(*pcl_cloud);
 
 		// Cluster the data to find beacons as centroids
 		pcl::search::KdTree<pcl::PointXYZI>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZI>);
@@ -142,18 +167,51 @@ void handle_scan() {
 			float i = d / 2;
 			float j = 3.188;
 
+			// TODO support both sides
 			float x = (r1 * r1 - r2 * r2 + d * d) / (2 * d);
 			float y = (r1 * r1 - r3 * r3 + i * i + j * j) / (2 * j) - i * x / j;
+
+			// Compute yaw from scalar product
+			float yaw_1 = atan2f(y, -x) - atan2f(point_1->y, point_1->x);
+			float yaw_2 = atan2f(y, -x + 2 * i) - atan2f(point_2->y, point_2->x);
+			float yaw_3 = atan2f(-j + y, -x + i) - atan2f(point_3->y, point_3->x);
+
+			// Compute mean
+			float yaw = atan2f(sinf(yaw_1) + sinf(yaw_2) + sinf(yaw_3), cosf(yaw_1) + cosf(yaw_2) + cosf(yaw_3));
+
+			// Compute laser to map transform
+			tf::Transform laser_to_map_transform = tf::Transform(tf::createQuaternionFromRPY(0, 0, yaw), tf::Vector3(x - i, j / 2 - y, odom_to_laser_transform.getOrigin().getZ())).inverse();
+
+			// Compute map to odom transform
+			tf::Transform map_to_odom_transform;
+			map_to_odom_transform = (odom_to_laser_transform * laser_to_map_transform).inverse();
+
+			// Publish map transform
+			geometry_msgs::TransformStamped odom_trans;
+			odom_trans.header.stamp = scan->header.stamp;
+			odom_trans.header.frame_id = "map";
+			odom_trans.child_frame_id = "odom";
+			tf::transformTFToMsg(map_to_odom_transform, odom_trans.transform);
+
+			// Send the transform
+			tf_broadcaster->sendTransform(odom_trans);
 
 			// Compute the point coordinates by trilateration
 			// https://en.wikipedia.org/wiki/Trilateration
 			geometry_msgs::PoseWithCovarianceStamped point_r;
-			point_r.header.frame_id = "odom"; //scan->header.frame_id;
+			point_r.header.frame_id = "map";
 			point_r.header.stamp = scan->header.stamp;
 			point_r.pose.pose.position.x = x - i;
 			point_r.pose.pose.position.y = j / 2 - y;
 			point_r.pose.pose.position.z = 0;
-			point_r.pose.pose.orientation = tf::createQuaternionMsgFromYaw(0);
+			point_r.pose.pose.orientation = tf::createQuaternionMsgFromYaw(yaw);
+
+			point_r.pose.covariance[0] = 1.0e-6;
+			point_r.pose.covariance[7] = 1.0e-6;
+			point_r.pose.covariance[14] = 1.0e6;
+			point_r.pose.covariance[21] = 1.0e6;
+			point_r.pose.covariance[28] = 1.0e6;
+			point_r.pose.covariance[35] = 1.0e-3;
 
 			estimated_pos_publisher.publish(point_r);
 		}
@@ -166,13 +224,12 @@ int main(int argc, char** argv) {
 	ros::NodeHandle nh;
 	ros::NodeHandle nh_priv("~");
 
-	// Init pointers
-	laser_scan_filter_chain.reset(new filters::FilterChain<sensor_msgs::LaserScan>("sensor_msgs::LaserScan"));
-	tf_listener.reset(new tf::TransformListener());
-	laser_projection.reset(new laser_geometry::LaserProjection());
+	nh_priv.param("min_intensity", min_intensity_, 0.0);
 
-	// Init laser scan filters with private node parameters
-	laser_scan_filter_chain->configure("laser_scan_filters", nh_priv);
+	// Init pointers
+	tf_listener.reset(new tf::TransformListener());
+	tf_broadcaster.reset(new tf::TransformBroadcaster());
+	laser_projection.reset(new laser_geometry::LaserProjection());
 
 	// Init publishers
 	filtered_points_publisher = nh_priv.advertise<sensor_msgs::PointCloud2>("filtered_points", 1, false);
@@ -180,6 +237,13 @@ int main(int argc, char** argv) {
 
 	// Init subscribers
 	ros::Subscriber laser_scan_subscriber = nh_priv.subscribe("laser_scan", 1, &laser_scan_callback);
+
+	// Dynamic reconfigure
+	dynamic_reconfigure::Server<starbaby_trilateration::TrilaterationConfig> server;
+	dynamic_reconfigure::Server<starbaby_trilateration::TrilaterationConfig>::CallbackType f;
+
+	f = boost::bind(&callback, _1, _2);
+	server.setCallback(f);
 
 	// Compute according to a rate to earn ressources
 	ros::Rate rate(10);

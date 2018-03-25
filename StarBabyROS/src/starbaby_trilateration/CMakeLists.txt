@@ -12,7 +12,6 @@ find_package(catkin REQUIRED COMPONENTS
 	sensor_msgs
 	roscpp
 	filters
-	laser_filters
 	laser_geometry
 	tf
 	pcl_ros
@@ -93,10 +92,9 @@ find_package(catkin REQUIRED COMPONENTS
 ##     and list every .cfg file to be processed
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
-# generate_dynamic_reconfigure_options(
-#   cfg/DynReconf1.cfg
-#   cfg/DynReconf2.cfg
-# )
+generate_dynamic_reconfigure_options(
+  cfg/Trilateration.cfg
+)
 
 ###################################
 ## catkin specific configuration ##
