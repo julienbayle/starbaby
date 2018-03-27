@@ -1,0 +1,10 @@
+<launch>
+	<rosparam file="$(find starbaby_navigation)/config/starbaby_navigation.yaml" command="load"/>
+	
+	<node name="starbaby_map_server" pkg="map_server" type="map_server" args="$(find starbaby_navigation)/config/starbaby_map.yaml" ns="/starbaby"/>
+	
+	<node name="starbaby_move_base" pkg="move_base" type="move_base" respawn="false" output="screen" ns="/starbaby">
+		<rosparam file="$(find starbaby_navigation)/config/starbaby_costmap_common_params.yaml" command="load" ns="global_costmap"/>
+	    <rosparam file="$(find starbaby_navigation)/config/starbaby_costmap_common_params.yaml" command="load" ns="local_costmap"/>
+	</node>
+</launch>

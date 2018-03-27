@@ -23,7 +23,6 @@
 		<material>Gazebo/Blue</material>
 	 </gazebo>
 	
-	<!-- hokuyo -->
 	<gazebo reference="lidar_link">
 		<sensor type="ray" name="head_hokuyo_sensor">
 			<pose>0 0 0 0 0 0</pose>
@@ -59,6 +58,120 @@
 			</plugin>
 		</sensor>
 		<material>Gazebo/Blue</material>
+	</gazebo>
+	
+	<gazebo reference="sonar_center_link">
+		<sensor type="ray" name="sonar_center_sensor">
+			<pose>0 0 0 0 0 0</pose>
+			<update_rate>5</update_rate>
+			<ray>
+				<scan>
+					<horizontal>
+						<samples>5</samples>
+						<resolution>1.0</resolution>
+						<min_angle>-0.0075</min_angle>
+						<max_angle>0.0075</max_angle>
+					</horizontal>
+					<vertical>
+						<samples>5</samples>
+						<resolution>1</resolution>
+						<min_angle>-0.0075</min_angle>
+						<max_angle>0.0075</max_angle>
+					</vertical>
+				</scan>
+				<range>
+					<min>0.08</min>
+					<max>4.0</max>
+					<resolution>0.01</resolution>
+				</range>
+			</ray>
+			<plugin filename="libgazebo_ros_range.so" name="gazebo_ros_range">
+				<gaussianNoise>0.005</gaussianNoise>
+				<alwaysOn>true</alwaysOn>
+				<updateRate>5</updateRate>
+				<topicName>/starbaby/sonar/center</topicName>
+				<frameName>sonar_center_link</frameName>
+				<fov>0.015</fov>
+				<radiation>ultrasound</radiation>
+			</plugin>
+		</sensor>
+		<material>Gazebo/White</material>
+	</gazebo>
+	
+	<gazebo reference="sonar_left_link">
+		<sensor type="ray" name="sonar_left_sensor">
+			<pose>0 0 0 0 0 0</pose>
+			<update_rate>5</update_rate>
+			<ray>
+				<scan>
+					<horizontal>
+						<samples>5</samples>
+						<resolution>1.0</resolution>
+						<min_angle>-0.0075</min_angle>
+						<max_angle>0.0075</max_angle>
+					</horizontal>
+					<vertical>
+						<samples>5</samples>
+						<resolution>1</resolution>
+						<min_angle>-0.0075</min_angle>
+						<max_angle>0.0075</max_angle>
+					</vertical>
+				</scan>
+				<range>
+					<min>0.08</min>
+					<max>4.0</max>
+					<resolution>0.01</resolution>
+				</range>
+			</ray>
+			<plugin filename="libgazebo_ros_range.so" name="gazebo_ros_range">
+	            <gaussianNoise>0.005</gaussianNoise>
+	            <alwaysOn>true</alwaysOn>
+	            <updateRate>5</updateRate>
+	            <topicName>/starbaby/sonar/left</topicName>
+	            <frameName>sonar_left_link</frameName>
+	            <fov>0.0155</fov>
+	            <radiation>ultrasound</radiation>
+			</plugin>
+		</sensor>
+		<material>Gazebo/White</material>
+	</gazebo>
+	
+	<gazebo reference="sonar_right_link">
+		<sensor type="ray" name="sonar_right_sensor">
+			<pose>0 0 0 0 0 0</pose>
+			<update_rate>5</update_rate>
+			<ray>
+				<scan>
+					<horizontal>
+						<samples>5</samples>
+						<resolution>1.0</resolution>
+						<min_angle>-0.0075</min_angle>
+						<max_angle>0.0075</max_angle>
+					</horizontal>
+					<vertical>
+						<samples>5</samples>
+						<resolution>1</resolution>
+						<min_angle>-0.0075</min_angle>
+						<max_angle>0.0075</max_angle>
+					</vertical>
+				</scan>
+				<range>
+					<min>0.08</min>
+					<max>4.0</max>
+					<resolution>0.01</resolution>
+				</range>
+			</ray>
+			<plugin filename="libgazebo_ros_range.so" name="gazebo_ros_range">
+	            <gaussianNoise>0.005</gaussianNoise>
+	            <alwaysOn>true</alwaysOn>
+	            <updateRate>5</updateRate>
+	            <topicName>/starbaby/sonar/right</topicName>
+	            <frameName>sonar_right_link</frameName>
+	            <fov>0.015</fov>
+	            <radiation>ultrasound</radiation>
+			</plugin>
+		</sensor>
+		<material>Gazebo/White</material>
 	</gazebo>
 
 	<gazebo reference="body_link">

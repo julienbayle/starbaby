@@ -1,0 +1,4 @@
+<launch>
+	<node pkg="starbaby_sensor" type="starbaby_sensor_node" name="starbaby_sensor" ns="starbaby">
+	</node>
+</launch>

@@ -1,0 +1,32 @@
+obstacle_range: 2.5
+raytrace_range: 3.0
+footprint: [[-0.105, 0.115], [0.075, 0.115], [0.105, 0.045], [0.105, -0.045], [0.075, -0.115], [-0.105, -0.115]]
+#robot_radius: ir_of_robot
+inflation_radius: 0.005
+cost_scaling_factor: 10.0
+
+observation_sources: sonar_center sonar_left sonar_right
+
+sonar_center: { 
+  sensor_frame: sonar_center_link,
+  data_type: PointCloud,
+  topic: /starbaby/sonar/center_point_cloud,
+  clearing: true,
+  marking: true
+}
+
+sonar_left: { 
+  sensor_frame: sonar_left_link,
+  data_type: PointCloud,
+  topic: /starbaby/sonar/left_point_cloud,
+  clearing: true,
+  marking: true
+}
+
+sonar_right: { 
+  sensor_frame: sonar_right_link,
+  data_type: PointCloud,
+  topic: /starbaby/sonar/right_point_cloud,
+  clearing: true,
+  marking: true
+}

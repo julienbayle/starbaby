@@ -10,6 +10,9 @@ Panels:
         - /LaserScan1
         - /PointCloud21
         - /PoseWithCovariance1
+        - /PointCloud1
+        - /PointCloud2
+        - /PointCloud3
       Splitter Ratio: 0.5
     Tree Height: 565
   - Class: rviz/Selection
@@ -96,6 +99,21 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
+        sonar_center_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        sonar_left_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        sonar_right_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
       Name: RobotModel
       Robot Description: robot_description
       TF Prefix: ""
@@ -151,7 +169,15 @@ Visualization Manager:
           Value: true
         map:
           Value: true
+        odom:
+          Value: true
         right_wheel_link:
+          Value: true
+        sonar_center_link:
+          Value: true
+        sonar_left_link:
+          Value: true
+        sonar_right_link:
           Value: true
       Marker Scale: 1
       Name: TF
@@ -167,11 +193,19 @@ Visualization Manager:
               {}
             lidar_link:
               {}
+            sonar_center_link:
+              {}
+            sonar_left_link:
+              {}
+            sonar_right_link:
+              {}
           left_wheel_link:
             {}
           right_wheel_link:
             {}
         map:
+          {}
+        odom:
           {}
       Update Interval: 0
       Value: true
@@ -225,7 +259,7 @@ Visualization Manager:
           Scale: 1
           Value: true
         Value: false
-      Enabled: true
+      Enabled: false
       Head Length: 0.200000003
       Head Radius: 0.100000001
       Name: PoseWithCovariance
@@ -234,6 +268,156 @@ Visualization Manager:
       Shape: Arrow
       Topic: /starbaby/starbaby_trilateration/estimated_pos
       Unreliable: false
+      Value: false
+    - Alpha: 0.5
+      Buffer Length: 1
+      Class: rviz/Range
+      Color: 255; 255; 255
+      Enabled: false
+      Name: Range
+      Queue Size: 100
+      Topic: /sonar/center
+      Unreliable: false
+      Value: false
+    - Alpha: 0.5
+      Buffer Length: 1
+      Class: rviz/Range
+      Color: 255; 255; 255
+      Enabled: false
+      Name: Range
+      Queue Size: 100
+      Topic: /sonar/left
+      Unreliable: false
+      Value: false
+    - Alpha: 0.5
+      Buffer Length: 1
+      Class: rviz/Range
+      Color: 255; 255; 255
+      Enabled: false
+      Name: Range
+      Queue Size: 100
+      Topic: /sonar/right
+      Unreliable: false
+      Value: false
+    - Alpha: 0.699999988
+      Class: rviz/Map
+      Color Scheme: map
+      Draw Behind: false
+      Enabled: true
+      Name: Map
+      Topic: /starbaby/map
+      Unreliable: false
+      Use Timestamp: false
+      Value: true
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud
+      Color: 255; 255; 0
+      Color Transformer: FlatColor
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 0
+      Max Intensity: 4096
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: PointCloud
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.100000001
+      Style: Flat Squares
+      Topic: /starbaby/sonar/center_point_cloud
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud
+      Color: 255; 255; 0
+      Color Transformer: FlatColor
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Max Intensity: 4096
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: PointCloud
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.100000001
+      Style: Flat Squares
+      Topic: /starbaby/sonar/left_point_cloud
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud
+      Color: 255; 255; 0
+      Color Transformer: FlatColor
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Max Intensity: 4096
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: PointCloud
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.100000001
+      Style: Flat Squares
+      Topic: /starbaby/sonar/right_point_cloud
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
+    - Alpha: 0.699999988
+      Class: rviz/Map
+      Color Scheme: map
+      Draw Behind: false
+      Enabled: true
+      Name: Map
+      Topic: /starbaby/starbaby_move_base/local_costmap/costmap
+      Unreliable: false
+      Use Timestamp: false
+      Value: true
+    - Alpha: 0.699999988
+      Class: rviz/Map
+      Color Scheme: map
+      Draw Behind: false
+      Enabled: true
+      Name: Map
+      Topic: /starbaby/starbaby_move_base/global_costmap/costmap
+      Unreliable: false
+      Use Timestamp: false
       Value: true
   Enabled: true
   Global Options:
@@ -260,7 +444,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 9.05188465
+      Distance: 8.26845646
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
@@ -275,10 +459,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 1.24979615
+      Pitch: 1.07979667
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 5.86858416
+      Yaw: 4.70358658
     Saved: ~
 Window Geometry:
   Displays:
