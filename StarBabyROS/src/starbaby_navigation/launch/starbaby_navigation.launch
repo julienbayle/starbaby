@@ -6,5 +6,7 @@
 	<node name="starbaby_move_base" pkg="move_base" type="move_base" respawn="false" output="screen" ns="/starbaby">
 		<rosparam file="$(find starbaby_navigation)/config/starbaby_costmap_common_params.yaml" command="load" ns="global_costmap"/>
 	    <rosparam file="$(find starbaby_navigation)/config/starbaby_costmap_common_params.yaml" command="load" ns="local_costmap"/>
+	    
+	    <remap from="cmd_vel" to="auto_cmd_vel"/>
 	</node>
 </launch>

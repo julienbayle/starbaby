@@ -2,8 +2,10 @@
 
 #include "geometry_msgs/Twist.h"
 #include "sensor_msgs/Joy.h"
+#include "std_msgs/Bool.h"
 
 ros::Publisher cmd_vel_teleop_publisher;
+ros::Publisher mode_auto_publisher;
 
 // note on plain values:
 // buttons are either 0 or 1
@@ -56,6 +58,17 @@ void joy_handler(const sensor_msgs::Joy::ConstPtr& joy_msg)
     twist.angular.z = 0;
   }*/
 
+    if (joy_msg->buttons[XBOX_BUTTON_START]) {
+    	std_msgs::Bool bool_msg;
+    	bool_msg.data = true;
+    	mode_auto_publisher.publish(bool_msg);
+    }
+    if (joy_msg->buttons[XBOX_BUTTON_BACK]) {
+    	std_msgs::Bool bool_msg;
+    	bool_msg.data = false;
+    	mode_auto_publisher.publish(bool_msg);
+    }
+
   cmd_vel_teleop_publisher.publish(twist);
 }
 
@@ -67,7 +80,8 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
     ros::NodeHandle nh_priv("~");
 
-    cmd_vel_teleop_publisher = nh.advertise<geometry_msgs::Twist>("mobile_base_controller/cmd_vel", 10);//cmd_vel_teleop
+    cmd_vel_teleop_publisher = nh.advertise<geometry_msgs::Twist>("teleop_cmd_vel", 10);//cmd_vel_teleop
+    mode_auto_publisher = nh.advertise<std_msgs::Bool>("mode_auto", 1, true);
 
     ros::Subscriber joy_subscriber = nh.subscribe<sensor_msgs::Joy>("joy", 10, joy_handler);
 

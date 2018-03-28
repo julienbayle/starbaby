@@ -1,0 +1,4 @@
+<launch>
+	<node pkg="starbaby_state" type="starbaby_state_node.py" name="starbaby_state" ns="starbaby" output="screen">
+	</node>
+</launch>

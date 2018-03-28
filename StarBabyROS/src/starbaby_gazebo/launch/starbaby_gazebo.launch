@@ -27,13 +27,17 @@
 	<node name="urdf_spawner_robot" pkg="gazebo_ros" type="spawn_model" respawn="false"
 		args="-urdf -model starbaby -param robot_description -z 0.3"/>
 	
-	<!-- Description  -->
+	<!-- Field description  -->
 	<param name="robot_cities_2018"
 		command="$(find xacro)/xacro --inorder '$(find starbaby_gazebo)/urdf/RobotCities-2018.xacro'" />
 	
 	<!-- Run a python script to the send a service call to gazebo_ros to spawn a URDF robot -->
 	<node name="urdf_spawner_world" pkg="gazebo_ros" type="spawn_model" respawn="false"
 		args="-urdf -model robot_cities_2018 -param robot_cities_2018 -z 0.1"/>
+	
+	<!-- State  -->
+	<include file="$(find starbaby_state)/launch/starbaby_state.launch">
+	</include>
 	
 	<!-- Control  -->
 	<include file="$(find starbaby_control)/launch/starbaby_control.launch">
@@ -58,6 +62,10 @@
 	<!-- Teleop  -->
 	<include file="$(find starbaby_teleop)/launch/starbaby_teleop.launch">
 	</include>
+	
+	<!-- Gazebo mock -->
+	<node name="starbaby_gazebo" pkg="starbaby_gazebo" type="starbaby_gazebo_node" ns="/starbaby">
+	</node>
 
 	<!-- Rviz   -->
 	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find starbaby_gazebo)/rviz/starbaby_gazebo.rviz"/>

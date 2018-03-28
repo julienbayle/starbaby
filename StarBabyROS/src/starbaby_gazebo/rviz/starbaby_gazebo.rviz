@@ -436,7 +436,7 @@ Visualization Manager:
     - Class: rviz/SetInitialPose
       Topic: /initialpose
     - Class: rviz/SetGoal
-      Topic: /move_base_simple/goal
+      Topic: /starbaby/move_base_simple/goal
     - Class: rviz/PublishPoint
       Single click: true
       Topic: /clicked_point
@@ -480,5 +480,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1200
-  X: 65
-  Y: 60
+  X: 515
+  Y: 53

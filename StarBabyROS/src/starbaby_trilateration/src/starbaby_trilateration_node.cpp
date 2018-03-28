@@ -96,7 +96,7 @@ void handle_scan() {
 		std::vector<pcl::PointIndices> cluster_indices;
 		pcl::EuclideanClusterExtraction<pcl::PointXYZI> ec;
 		ec.setClusterTolerance (0.3); // 30cm
-		ec.setMinClusterSize (3);
+		ec.setMinClusterSize (2);
 		ec.setMaxClusterSize (100);
 		ec.setSearchMethod (tree);
 		ec.setInputCloud (pcl_cloud);
@@ -214,6 +214,8 @@ void handle_scan() {
 			point_r.pose.covariance[35] = 1.0e-3;
 
 			estimated_pos_publisher.publish(point_r);
+		} else {
+			ROS_WARN("Got %lu points", cloud_cluster->size());
 		}
 	}
 }
