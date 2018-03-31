@@ -5,6 +5,7 @@
     <xacro:property name="beacon_width" value="0.1" />
     <xacro:property name="beacon_height" value="0.5" />
 	<xacro:property name="beacon_laser_retro" value="100.0"/>
+	<xacro:property name="beacon_side" value="1"/>
 
     <link name="world"/>
 
@@ -85,7 +86,7 @@
 		</gazebo>
 	</xacro:macro>
 	
-	<beacon beacon_name="beacon_1" beacon_x="-0.95" beacon_y="1.594"/>
-	<beacon beacon_name="beacon_2" beacon_x="0.0" beacon_y="-1.594"/>
-	<beacon beacon_name="beacon_3" beacon_x="0.95" beacon_y="1.594"/>
+	<beacon beacon_name="beacon_1" beacon_x="-0.95" beacon_y="${beacon_side * -1.594}"/>
+	<beacon beacon_name="beacon_2" beacon_x="0.0" beacon_y="${beacon_side * 1.594}"/>
+	<beacon beacon_name="beacon_3" beacon_x="0.95" beacon_y="${beacon_side * -1.594}"/>
 </robot>

@@ -1,0 +1,37 @@
+<launch>
+	<arg name="sim" default="false"/>
+	
+	<machine name="localhost" address="localhost" env-loader="/opt/ros/kinetic/env.sh"/>
+	
+	<!-- Description  -->
+	<include file="$(find starbaby_description)/launch/starbaby_description.launch">
+	</include>
+	
+	<!-- State  -->
+	<include file="$(find starbaby_state)/launch/starbaby_state.launch">
+	</include>
+	
+	<!-- Control  -->
+	<include file="$(find starbaby_control)/launch/starbaby_control.launch">
+	</include>
+	
+	<!-- Sensor  -->
+	<include file="$(find starbaby_sensor)/launch/starbaby_sensor.launch">
+	</include>
+	
+	<!-- Trilateration  -->
+	<include file="$(find starbaby_trilateration)/launch/starbaby_trilateration.launch">
+	</include>
+	
+	<!-- Localization  -->
+	<include file="$(find starbaby_localization)/launch/starbaby_localization.launch">
+	</include>
+	
+	<!-- Navigation  -->
+	<include file="$(find starbaby_navigation)/launch/starbaby_navigation.launch">
+	</include>
+	
+	<!-- Teleop  -->
+	<include file="$(find starbaby_teleop)/launch/starbaby_teleop.launch">
+	</include>
+</launch>

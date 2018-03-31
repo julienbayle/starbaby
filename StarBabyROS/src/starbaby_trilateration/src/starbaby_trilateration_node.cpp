@@ -5,6 +5,7 @@
  *      Author: Yann BOURRIGAULT
  */
 
+#include <std_msgs/Bool.h>
 #include <sensor_msgs/LaserScan.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <filters/filter_chain.h>
@@ -30,6 +31,7 @@
 #include <starbaby_trilateration/TrilaterationConfig.h>
 
 double min_intensity_;
+bool is_orange_;
 
 boost::shared_ptr<tf::TransformListener> tf_listener;
 boost::shared_ptr<tf::TransformBroadcaster> tf_broadcaster;
@@ -46,6 +48,10 @@ sensor_msgs::LaserScanConstPtr last_scan;
 
 void laser_scan_callback(const sensor_msgs::LaserScanConstPtr& scan) {
 	last_scan = scan;
+}
+
+void side_callback(const std_msgs::BoolConstPtr& is_orange) {
+	is_orange_ = is_orange->data;
 }
 
 void handle_scan() {
@@ -167,20 +173,33 @@ void handle_scan() {
 			float i = d / 2;
 			float j = 3.188;
 
-			// TODO support both sides
-			float x = (r1 * r1 - r2 * r2 + d * d) / (2 * d);
-			float y = (r1 * r1 - r3 * r3 + i * i + j * j) / (2 * j) - i * x / j;
+			// Coordinates in trilateration frame
+			float tx = (r1 * r1 - r2 * r2 + d * d) / (2 * d);
+			float ty = (r1 * r1 - r3 * r3 + i * i + j * j) / (2 * j) - i * tx / j;
 
 			// Compute yaw from scalar product
-			float yaw_1 = atan2f(y, -x) - atan2f(point_1->y, point_1->x);
-			float yaw_2 = atan2f(y, -x + 2 * i) - atan2f(point_2->y, point_2->x);
-			float yaw_3 = atan2f(-j + y, -x + i) - atan2f(point_3->y, point_3->x);
+			/*float yaw_1 = atan2f(j / 2 - y, -x - i) - atan2f(point_1->y, point_1->x);
+			float yaw_2 = atan2f(j / 2 - y, -x + i) - atan2f(point_2->y, point_2->x);
+			float yaw_3 = atan2f(-j / 2 - y, -x) - atan2f(point_3->y, point_3->x);*/
+			float yaw_1 = atan2f(ty, -tx) - atan2f(point_1->y, point_1->x);
+			float yaw_2 = atan2f(ty, -tx + 2 * i) - atan2f(point_2->y, point_2->x);
+			float yaw_3 = atan2f(-j + ty, -tx + i) - atan2f(point_3->y, point_3->x);
 
 			// Compute mean
 			float yaw = atan2f(sinf(yaw_1) + sinf(yaw_2) + sinf(yaw_3), cosf(yaw_1) + cosf(yaw_2) + cosf(yaw_3));
 
+			// Coordinates centered in map frame
+			float x = (is_orange_ ? 1 : -1) * (tx - i);
+			float y = (is_orange_ ? 1 : -1) * (-ty + j / 2);
+			if (!is_orange_) {
+				yaw = ((float)M_PI) + yaw;
+			}
+
 			// Compute laser to map transform
-			tf::Transform laser_to_map_transform = tf::Transform(tf::createQuaternionFromRPY(0, 0, yaw), tf::Vector3(x - i, j / 2 - y, odom_to_laser_transform.getOrigin().getZ())).inverse();
+			tf::Transform laser_to_map_transform = tf::Transform(
+					tf::createQuaternionFromRPY(0, 0, yaw),
+					tf::Vector3(x, y, odom_to_laser_transform.getOrigin().getZ())
+				).inverse();
 
 			// Compute map to odom transform
 			tf::Transform map_to_odom_transform;
@@ -201,8 +220,8 @@ void handle_scan() {
 			geometry_msgs::PoseWithCovarianceStamped point_r;
 			point_r.header.frame_id = "map";
 			point_r.header.stamp = scan->header.stamp;
-			point_r.pose.pose.position.x = x - i;
-			point_r.pose.pose.position.y = j / 2 - y;
+			point_r.pose.pose.position.x = x;
+			point_r.pose.pose.position.y = y;
 			point_r.pose.pose.position.z = 0;
 			point_r.pose.pose.orientation = tf::createQuaternionMsgFromYaw(yaw);
 
@@ -239,6 +258,7 @@ int main(int argc, char** argv) {
 
 	// Init subscribers
 	ros::Subscriber laser_scan_subscriber = nh_priv.subscribe("laser_scan", 1, &laser_scan_callback);
+	ros::Subscriber side_subscriber = nh.subscribe("is_orange", 1, &side_callback);
 
 	// Dynamic reconfigure
 	dynamic_reconfigure::Server<starbaby_trilateration::TrilaterationConfig> server;
