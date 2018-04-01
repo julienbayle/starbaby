@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
+	<arg name="sim" default="false"/>
+	
+	<arg name="sim_controllers" value="mobile_base_controller" if="$(arg sim)"/>
+	
 	<rosparam file="$(find starbaby_control)/config/starbaby_control.yaml" command="load"/>
 	
 	<!-- Launch joint state publisher controller -->
 	<node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
 		output="screen" ns="/starbaby" args="
 			joint_state_controller
-			mobile_base_controller
+			$(arg sim_controllers)
 			--timeout 2400
 	"/>
 	

@@ -13,6 +13,7 @@
 	
 	<!-- Control  -->
 	<include file="$(find starbaby_control)/launch/starbaby_control.launch">
+		<arg name="sim" value="$(arg sim)"/>
 	</include>
 	
 	<!-- Sensor  -->
