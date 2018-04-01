@@ -1,0 +1,37 @@
+<launch>
+  <node name="rosserial_python" pkg="rosserial_python" type="serial_node.py" args="/dev/ttyACM0" output="screen" />
+  
+  <node name="base_controler" pkg="starbaby_base_controler" type="base_controler_with_odom.py" output="screen" />
+  
+  <node name="right_wheel_pid" pkg="pid" ns="right_wheel" type="controller" output="screen">
+    <param name="Kp" value="1000.0" />
+    <param name="Ki" value="100.0" />
+    <param name="Kd" value="0.0" />
+    <param name="upper_limit" value="250" />
+    <param name="lower_limit" value="-250" />
+    <param name="windup_limit" value="250" />
+    <param name="max_loop_frequency" value="60.0" />
+    <param name="min_loop_frequency" value="10.0" />
+    <param name="min_loop_frequency" value="10.0" />
+    <param name="pid_enable_topic" value="pid_enable" />
+    <param name="topic_from_controller" value="pwm" />
+    <param name="topic_from_plant" value="speed" />
+    <param name="setpoint_topic" value="goal_speed" />     
+  </node>
+
+  <node name="left_wheel_pid" pkg="pid" ns="left_wheel" type="controller" output="screen">
+    <param name="Kp" value="1000.0" />
+    <param name="Ki" value="100.0" />
+    <param name="Kd" value="0.0" />
+    <param name="upper_limit" value="250" />
+    <param name="lower_limit" value="-250" />
+    <param name="windup_limit" value="250" />
+    <param name="max_loop_frequency" value="60.0" />
+    <param name="min_loop_frequency" value="10.0" />
+    <param name="min_loop_frequency" value="10.0" />
+    <param name="pid_enable_topic" value="pid_enable" />
+    <param name="topic_from_controller" value="pwm" />
+    <param name="topic_from_plant" value="speed" />
+    <param name="setpoint_topic" value="goal_speed" />     
+  </node>
+</launch>
