@@ -1,6 +1,6 @@
 - git:
-    local-name: starbaby_lidar_motor
+    local-name: xv_11_laser_motor_control
     uri: https://github.com/julienbayle/xv_11_laser_motor_control.git
 - git:
-    local-name: starbaby_lidar_scan
+    local-name: xv_11_laser_driver
     uri: https://github.com/julienbayle/xv_11_laser_driver.git
