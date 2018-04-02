@@ -1,0 +1,3 @@
+<launch>
+	<node name="starbaby_imu" pkg="starbaby_imu" type="starbaby_imu.py" output="screen" />
+</launch>

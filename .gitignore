@@ -1,4 +1,5 @@
 *.bak
+*.pyc
 /.metadata/
 StarBabyROS/src/starbaby_lidar_motor/
 StarBabyROS/src/starbaby_lidar_scan/
