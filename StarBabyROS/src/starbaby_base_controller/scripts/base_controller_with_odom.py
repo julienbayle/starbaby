@@ -8,7 +8,7 @@
     On Twist message received, updates wheel speed goals for the PID controllers
     On left wheel encoder counter message received, updates last wheel counter
     On right wheel encoder counter message received, computes and publishes
-    odom, TF and actual wheel speed.
+    odom, TF, joint state and actual wheel speed.
 
     This code works with the following Arduino board :
     https://github.com/julienbayle/starbaby_arduino_motors
@@ -48,6 +48,7 @@ from tf.transformations import quaternion_from_euler
 from std_msgs.msg import Int16
 from std_msgs.msg import Float64
 from std_msgs.msg import Bool
+from sensor_msgs.msg import JointState
 
 class simpleBaseControlerWithOdom:
 
@@ -67,6 +68,7 @@ class simpleBaseControlerWithOdom:
         # 1 wheel turn = 70 * 4 ticks = 280 ticks
         # 1 wheel turn = Pi * 78 mm = 0.245 meter
         # tick per meter = 280 / 0.245 = 1143
+        self.tick_per_rotation = float(rospy.get_param('ticks_per_rotation', 280))  
         self.tick_per_meter = float(rospy.get_param('ticks_per_meter', 1143))  
 
         # Distance between wheels
@@ -88,15 +90,6 @@ class simpleBaseControlerWithOdom:
         # -1 if motor control is enabled and direction is backward
         self.wheel_direction = {"left": 0.0, "right": 0.0}  
         
-        # Subscribers
-        rospy.Subscriber('cmd_vel', Twist, self.twistCallback)
-        self.target_speed = {}    # Target speed for each wheel in m/s
-
-        rospy.Subscriber("/left_wheel/counter", Int16, self.leftWheelCounterCallback)
-        rospy.Subscriber("/right_wheel/counter", Int16, self.rightWheelCounterCallback)
-        self.prev_counter = {}    # Last encoder counter value for each wheel in ticks
-        self.d_wheel = {}         # Last distance travelled by each wheel in meters
-
         # Publishers
         self.odomBroadcaster = TransformBroadcaster()
         self.odomPub = rospy.Publisher("odom", Odometry, queue_size=10)
@@ -111,6 +104,18 @@ class simpleBaseControlerWithOdom:
         self.rightSpeedPub = rospy.Publisher("/right_wheel/speed", Float64, queue_size=10)
         self.rightPIDEnablePub = rospy.Publisher("/right_wheel/pid_enable", Bool, queue_size=10)
         self.rightPWMPub = rospy.Publisher("/right_wheel/pwm", Float64, queue_size=10)
+        
+        self.jointStatePub = rospy.Publisher("/joint_states", JointState, queue_size=10)
+        
+        # Subscribers
+        rospy.Subscriber('cmd_vel', Twist, self.twistCallback)
+        self.target_speed = {}    # Target speed for each wheel in m/s
+
+        rospy.Subscriber("/left_wheel/counter", Int16, self.leftWheelCounterCallback)
+        rospy.Subscriber("/right_wheel/counter", Int16, self.rightWheelCounterCallback)
+        self.prev_counter = {}    # Last encoder counter value for each wheel in ticks
+        self.d_wheel = {}         # Last distance travelled by each wheel in meters
+        self.pos_wheel = {"left" : 0.0, "right": 0.0}
         
     def spin(self):
         # Keep node active
@@ -133,13 +138,14 @@ class simpleBaseControlerWithOdom:
 
         self.d_wheel[wheel] = self.wheel_direction[wheel] * travel_in_ticks / self.tick_per_meter
         self.prev_counter[wheel] = counter
+        self.pos_wheel[wheel] += travel_in_ticks * self.tick_per_rotation
 
     def leftWheelCounterCallback(self, msg):
         self.updateWheelPosition("left", msg)
 
     def rightWheelCounterCallback(self, msg):
         self.updateWheelPosition("right", msg)
-        self.computeAndPublishOdomAndWheelsSpeed()
+        self.computeAndPublishOdomAndWheelsSpeedAndJointState()
 
     # Converts twist to a target wheel linear speeds order for PID control
     # Determines wheel rotation direction
@@ -187,7 +193,7 @@ class simpleBaseControlerWithOdom:
             self.rightPWMPub.publish(0)
         self.rightPIDEnablePub.publish(self.wheel_direction["right"] != 0)
 
-    def computeAndPublishOdomAndWheelsSpeed(self):
+    def computeAndPublishOdomAndWheelsSpeedAndJointState(self):
         now = rospy.Time.now()
 
         try:
@@ -233,6 +239,19 @@ class simpleBaseControlerWithOdom:
 
             self.leftSpeedPub.publish(self.d_wheel["left"] / d_t)
             self.rightSpeedPub.publish(self.d_wheel["right"] / d_t)
+            
+            joint_state = JointState();
+            joint_state.header.stamp = now
+            joint_state.name.append("left_wheel_link")
+            joint_state.position.append(self.pos_wheel["left"])
+            joint_state.velocity.append(self.d_wheel["left"] / d_t)
+            joint_state.effort.append(0)
+            joint_state.name.append("right_wheel_link")
+            joint_state.position.append(self.pos_wheel["right"])
+            joint_state.velocity.append(self.d_wheel["right"] / d_t)
+            joint_state.effort.append(0)
+            
+            self.jointStatePub.publish(joint_state)
         
         except AttributeError as e:
             pass # First mesure is used as a starting point and ignored

@@ -7,6 +7,10 @@
 	<include file="$(find starbaby_description)/launch/starbaby_description.launch">
 	</include>
 	
+	<!-- Hardware interface -->
+	<include file="$(find starbaby_base_controller)/launch/starbaby_base_controller.launch">
+	</include>
+	
 	<!-- State  -->
 	<include file="$(find starbaby_state)/launch/starbaby_state.launch">
 	</include>
@@ -14,6 +18,10 @@
 	<!-- Control  -->
 	<include file="$(find starbaby_control)/launch/starbaby_control.launch">
 		<arg name="sim" value="$(arg sim)"/>
+	</include>
+	
+	<!-- Lidar -->
+	<include file="$(find xv_11_laser_motor_control)/launch/xv_11_laser.launch">
 	</include>
 	
 	<!-- Sensor  -->

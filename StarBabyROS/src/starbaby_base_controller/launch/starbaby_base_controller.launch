@@ -4,6 +4,7 @@
   <node name="base_controller" pkg="starbaby_base_controller" type="base_controller_with_odom.py" output="screen">
     <remap from="cmd_vel" to="/starbaby/cmd_vel" />
     <remap from="odom" to="/starbaby/odom" />
+    <remap from="joint_states" to="/starbaby/joint_states"/>
   </node>
   
   <node name="right_wheel_pid" pkg="pid" ns="right_wheel" type="controller" output="screen">

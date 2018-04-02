@@ -2,17 +2,13 @@
 <launch>
 	<arg name="sim" default="false"/>
 	
-	<arg name="sim_controllers" value="mobile_base_controller" if="$(arg sim)"/>
-	
-	<rosparam file="$(find starbaby_control)/config/starbaby_control.yaml" command="load"/>
-	
 	<!-- Launch joint state publisher controller -->
 	<node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
 		output="screen" ns="/starbaby" args="
 			joint_state_controller
-			$(arg sim_controllers)
+			mobile_base_controller
 			--timeout 2400
-	"/>
+	" if="$(arg sim)"/>
 	
 	<!-- Combine joint values -->
 	<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"
