@@ -1,11 +1,13 @@
 <launch>
-        <node name="joy_node" pkg="joy" type="joy_node" ns="starbaby">
-            <param name="dev" type="string" value="/dev/input/js0" />
-            <param name="deadzone" value="0.12" />
-            <param name="autorepeat_rate" value="20.0"/> <!-- Hz -->
-            <param name="coalesce_interval" value="0.0"/> <!-- seconds -->
-        </node>
-
-        <node name="starbaby_teleop_xbox_node" pkg="starbaby_teleop" type="starbaby_teleop_xbox_node" ns="starbaby">
-        </node>
+	<rosparam file="$(find starbaby_teleop)/config/starbaby_teleop.yaml" command="load"/>
+	
+	<node name="joy_node" pkg="joy" type="joy_node" ns="starbaby">
+	    <param name="dev" type="string" value="/dev/input/js0" />
+	    <param name="deadzone" value="0.12" />
+	    <param name="autorepeat_rate" value="20.0"/> <!-- Hz -->
+	    <param name="coalesce_interval" value="0.0"/> <!-- seconds -->
+	</node>
+	
+	<node name="starbaby_teleop_xbox_node" pkg="starbaby_teleop" type="starbaby_teleop_xbox_node" ns="starbaby">
+	</node>
 </launch>

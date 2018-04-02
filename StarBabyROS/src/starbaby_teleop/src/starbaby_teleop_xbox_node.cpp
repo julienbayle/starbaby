@@ -36,28 +36,15 @@ ros::Publisher side_publisher;
 #define XBOX_AXIS_UP_DOWN_STICK_RIGHT 4
 #define XBOX_AXIS_RT 5
 
+double max_linear_speed;
+double max_angular_speed;
+
 void joy_handler(const sensor_msgs::Joy::ConstPtr& joy_msg)
 {
 	geometry_msgs::Twist twist;
 
-	double ratio;
-	if (joy_msg->buttons[XBOX_BUTTON_LB] && joy_msg->buttons[XBOX_BUTTON_RB]) {
-	ratio = 0.75;
-	} else if (joy_msg->buttons[XBOX_BUTTON_RB]) {
-	ratio = 1.0;
-	} else if (joy_msg->buttons[XBOX_BUTTON_LB]) {
-	ratio = 0.5;
-	} else {
-	ratio = 0.25;
-	}
-
-	//if (joy_msg->axes[XBOX_AXIS_LT] < 0 && joy_msg->axes[XBOX_AXIS_RT] < 0) {
-	twist.linear.x = joy_msg->axes[XBOX_AXIS_UP_DOWN_STICK_LEFT] * ratio;
-	twist.angular.z = joy_msg->axes[XBOX_AXIS_LEFT_RIGHT_STICK_RIGHT] * ratio;
-	/*} else {
-	twist.linear.x = 0;
-	twist.angular.z = 0;
-	}*/
+	twist.linear.x = joy_msg->axes[XBOX_AXIS_UP_DOWN_STICK_LEFT] * max_linear_speed;
+	twist.angular.z = joy_msg->axes[XBOX_AXIS_LEFT_RIGHT_STICK_RIGHT] * max_angular_speed;
 
 	if (joy_msg->buttons[XBOX_BUTTON_START]) {
 		std_msgs::Bool bool_msg;
@@ -91,6 +78,9 @@ int main(int argc, char **argv)
 
     ros::NodeHandle nh;
     ros::NodeHandle nh_priv("~");
+
+    nh_priv.param("max_linear_speed", max_linear_speed, 0.3);
+    nh_priv.param("max_angular_speed", max_angular_speed, 3.0);
 
     cmd_vel_teleop_publisher = nh.advertise<geometry_msgs::Twist>("teleop_cmd_vel", 10);//cmd_vel_teleop
     mode_auto_publisher = nh.advertise<std_msgs::Bool>("mode_auto", 1, true);
