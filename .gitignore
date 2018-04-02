@@ -1,5 +1,4 @@
+*.bak
 /.metadata/
-/StarBabyROS/src/xv_11_laser_motor_control
-/StarBabyROS/src/xv_11_laser_driver
-
-
+StarBabyROS/src/starbaby_lidar_motor/
+StarBabyROS/src/starbaby_lidar_scan/
