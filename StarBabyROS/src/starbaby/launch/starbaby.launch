@@ -20,6 +20,10 @@
 		<arg name="sim" value="$(arg sim)"/>
 	</include>
 	
+	<!-- IMU -->
+	<include file="$(find starbaby_imu)/launch/starbaby_imu.launch">
+	</include>
+	
 	<!-- Lidar -->
 	<include file="$(find xv_11_laser_motor_control)/launch/xv_11_laser.launch">
 	</include>
