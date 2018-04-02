@@ -5,7 +5,7 @@
 """
     simple_base_controller_with_odom
    
-    On Twist message received, updates wheel speed goals for the PID controlers
+    On Twist message received, updates wheel speed goals for the PID controllers
     On left wheel encoder counter message received, updates last wheel counter
     On right wheel encoder counter message received, computes and publishes
     odom, TF and actual wheel speed.
@@ -37,7 +37,7 @@
 
 import rospy
 import roslib
-roslib.load_manifest('stardust')
+roslib.load_manifest('starbaby_base_controller')
 from math import sin, cos, pi
 from numpy import array
 
@@ -52,9 +52,9 @@ from std_msgs.msg import Bool
 class simpleBaseControlerWithOdom:
 
     def __init__(self):
-        rospy.init_node("simple_base_controler_with_odom")
+        rospy.init_node("simple_base_controller_with_odom")
         self.node_name = rospy.get_name()
-        rospy.loginfo("Simple base controler with odometry  %s started" % self.node_name)
+        rospy.loginfo("Simple base controller with odometry  %s started" % self.node_name)
         
         # Rate
         self.rate = rospy.get_param('rate', 5) 

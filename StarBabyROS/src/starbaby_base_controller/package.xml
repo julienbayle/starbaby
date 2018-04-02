@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>starbaby_base_controler</name>
+  <name>starbaby_base_controller</name>
   <version>0.0.1</version>
-  <description>Arduino motorboard hardware interface, robot base controler and odometry</description>
+  <description>Arduino motorboard hardware interface, robot base controller and odometry</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <maintainer email="julienbayle@github.com">Julien BAYLE</maintainer>

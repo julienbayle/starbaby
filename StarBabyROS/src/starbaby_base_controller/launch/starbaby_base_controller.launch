@@ -1,7 +1,10 @@
 <launch>
   <node name="rosserial_python" pkg="rosserial_python" type="serial_node.py" args="/dev/ttyACM0" output="screen" />
   
-  <node name="base_controler" pkg="starbaby_base_controler" type="base_controler_with_odom.py" output="screen" />
+  <node name="base_controller" pkg="starbaby_base_controller" type="base_controller_with_odom.py" output="screen">
+    <remap from="cmd_vel" to="/starbaby/cmd_vel" />
+    <remap from="odom" to="/starbaby/odom" />
+  </node>
   
   <node name="right_wheel_pid" pkg="pid" ns="right_wheel" type="controller" output="screen">
     <param name="Kp" value="1000.0" />
