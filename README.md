@@ -1,107 +1,85 @@
 StarBaby
 ================================
 
-
 ## Introduction
 
-This code is the main program of the StarBaby robot for Eurobot 2018.
+This is the main program of the StarBaby robot for Eurobot 2018.
 It is based on ROS kinetic and a Raspberry Pi 3
 
 ## Installation on Raspberry Pi 3
 
 Ubuntu 16.04 has been selected because this Linux distribution is compatible
-With raspberry Pi 3 and ROS ARM packages are available.
+With raspberry Pi 3 and ROS ARM packages are availables.
 
 On raspbian (previously used), rosdep does not find all packages. 
-So a lot of packages must be installed and compiled by hand. 
-It's possible but painful.
+In consequence, a lot of packages must be installed and compiled by hand. It was painful.
 
-Note : This installation is a very long process (About two to three hours) 
+Two distributions of Ubuntu for Raspberry 3 were tested.
+The first one was from https://wiki.ubuntu.com/ARM/RaspberryPi
+It was a failure (apt-upgrade bugs, failed boots avec apt-get install, wifi unstable, slow ping, ...)
 
-### Ubuntu 16.04
+The second one was the good one : https://ubuntu-mate.org/download/
+Everything went fine.
 
-Download ubuntu 16.04 image from https://wiki.ubuntu.com/ARM/RaspberryPi
-Then, write the image into an SD CARD (Here from Mac OS) :
+Note : This installation is quite a long process. About two to three hours. 
+
+### Base image : Ubuntu 16.04
+
+Download ubuntu 16.04 image from https://ubuntu-mate.org/download/
+Then, write the image on a SD CARD (Mac OS version) :
 
 ```bash
 brew install xz
 diskutil umountDisk /dev/disk2
-xzcat ubuntu-16.04-preinstalled-server-armhf+raspi3.img.xz | sudo dd bs=4m of=/dev/rdisk2
+xzcat ubuntu-mate-16.04.2-desktop-armhf-raspberry-pi.img.xz | sudo dd bs=4m of=/dev/rdisk2
 ```
 
-Then put the SD card into the Raspberry and turn it on.
-Connect an ethernet cable to the Raspberry.
-Find your raspberry IP on your network using nmap or other method.
-Then connect to it via ssh (default user/password is ubuntu/ubuntu)
-Define a new new password on first connexion then connect again.
+Then put the SD card into the Raspberry Pi and turn it on.
+Connect an ethernet cable to the Raspberry, an HDMI cable and a mouse (keyboard is optionnal)
 
-Do not upgrade the Raspberry ! 
-Never use "upgrade" or "dist-upgrade" as it will corrupt your system.
-(this is because Raspberry Pi3 image is not supported by canonical yet)
+On the screen, complete the startup wizard. Fine.
+
+Ubuntu MATE doesn't provide SSH server by default.
+Let's add it.
+
+```bash
+sudo apt-get install openssh-server
+sudo systemctl enable ssh.service
+sudo ufw allow 22
+sudo systemctl restart ssh.service
+```
+
+### System update
+
+By default, system partitions are not well sized. Sytem update is impossible.
+Use gparted to change /boot size (128mo for example)
+
+```bash
+sudo apt-get install gparted
+sudo gparted
+```
+
+Then, update the system and reboot to check that everything goes fine
+(with some ubuntu images, raspberry does not restart after upgrade...)
+
+```bash
+sudo apt-get update
+sudo apt-get upgrade
+sudo reboot
+```
 
 ### Network and WIFI connexion
 
-First, configure hostname. 
-Without this, roscore will not start as ubuntu (defaut hostname) is unknown.
-In /etc/hosts, replace :
+Using the desktop interface, connect your raspberry to the wifi network
+You can also do it with ssh, using *nmtui* tool
 
-```
-127.0.0.1 localhost
-```
-
-By :
-
-```
-127.0.0.1 localhost ubuntu
-```
-
-Next, add WIFI support.
-WPAsupplicant allows to use multiple WIFI networks.
+Note your IP and reboot to check that WIFI goes up at startup.
+Unplug the raspberry pi from ethernet while halting.
 
 ```bash
-sudo su
-apt-get update
-apt-get install -y wpasupplicant
-echo "auto lo" > /etc/network/interfaces
-echo "iface lo inet loopback" >> /etc/network/interfaces
-echo "auto wlan0" >> /etc/network/interfaces
-echo "allow-hotplug wlan0" >> /etc/network/interfaces
-echo "iface wlan0 inet dhcp" >> /etc/network/interfaces
-echo "wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf" >> /etc/network/interfaces
-echo "auto eth0" >> /etc/network/interfaces
-echo "iface eth0 inet dhcp" >> /etc/network/interfaces
+ifconfig
+sudo reboot
 ```
-
-Create a new file /etc/wpa_supplicant/wpa_supplicant.conf
-
-```
-country=FR
-update_config=1
-
-network={
-        id_str="A"
-	ssid="WIFI_A_ID"
-        psk="WIFI_A_PASS"
-}
-
-network={
-        id_str="B"
-	ssid="WIFI_B_ID"
-        psk="WIFI_B_PASS"
-}
-```
-
-Then start the WIFI interface :
-
-```bash
-sudo ifup wlan0
-sudo halt
-```
-
-Unplug the raspberry from ethernet.
-Wait for about 10 seconds then start the device.
-Wait about 1 or 2 minutes.
-Check that you can connect by WIFI to your raspberry.
 
 ### ROS installation
 
@@ -117,6 +95,7 @@ rosdep update
 echo "source /opt/ros/kinetic/setup.bash" >> ~/.bashrc
 source ~/.bashrc
 sudo apt-get install python-rosinstall python-rosinstall-generator python-wstool build-essential
+sudo apt-get install ros-kinetic-joy ros-kinetic-robot-localization ros-kinetic-ros-controllers ros-kinetic-ros-control
 ```
 
 ### StarBaby ROS packages
@@ -124,11 +103,97 @@ sudo apt-get install python-rosinstall python-rosinstall-generator python-wstool
 ```bash
 git clone https://github.com/julienbayle/starbaby
 cd starbaby/StarBabyROS/src
-git clone https://github.com/julienbayle/xv_11_laser_motor_control.git
-git clone https://github.com/julienbayle/xv_11_laser_driver.git
+wstool update
+cd ..
 rosdep install --from-paths src --ignore-src --rosdistro kinetic -r -y
+sudo fallocate -l 512m /file.swap
+sudo chmod 600 /file.swap 
+sudo mkswap /file.swap 
+sudo swapon /file.swap
 catkin_make
+sudo swapoff /file.swap
 source devel/setup.bash
+```
+
+### Raspberry configuration for the robot
+
+#### LIDAR (UART) and GPIO
+
+The LIDAR use the raspberry serial port (3,3V / 8N1 / 115220). However, this one is used by bluetooth on raspberry pi 3. The console is also using the serial port when bluetooth is disabled. So we have to disable these functionalities. Moreover, our our must be authorized to use the serial port
+
+```bash
+sudo usermod -a -G dialout pi
+sudo systemctl disable hciuart
+```
+
+Add to /boot/config.txt :
+
+```
+dtoverlay=pi3-disable-bt
+
+```
+Remove these from /boot/cmdline.txt
+
+```
+console=serial0,115200
+```
+
+Many ROS nodes use Python GPIO for raspberry. As there is not rosdep for this package, we need to install it manualy :
+
+```bash
+sudo apt-get install python-pip python-dev
+sudo pip install RPi.GPIO 
+sudo reboot
+```
+
+Now, check that LIDAR can work :
+
+```bash
+cd starbaby/StarBabyROS/
+source devel/setup.bash
+roslaunch xv_11_laser_motor_control xv_11_laser.launch &
+rostopic echo /rpms
+```
+
+If the LIDAR works, it starts rotating at a regulated speed and emit on topic *rpms*, speed values 
+(value must be arount 300 +/-10) 
+
+#### Activate I2C and SPI using raspi-config.
+
+Robot eyes uses SPI and IMU uses I2C, so we have to activate both protocols.
+For this, we use *raspi-config*
+
+```bash
+sudo raspi-config 
+sudo reboot
+```
+
+Check that IMU is found over I2C
+
+```bash
+sudo i2cdetect -y 1
+```
+
+Should return :
+
+```
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:          -- -- -- -- -- -- -- -- -- -- -- -- -- 
+10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- 1e -- 
+20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+50: -- -- -- 53 -- -- -- -- -- -- -- -- -- -- -- -- 
+60: -- -- -- -- -- -- -- -- 68 -- -- -- -- -- -- -- 
+70: -- -- -- -- -- -- -- --
+```
+
+### Run 
+
+To check everything is fine, start the main launch file
+
+```bash
+roslaunch starbaby starbaby.launch
 ```
 
 
@@ -153,7 +218,9 @@ source ~/.bashrc
 
 ```bash
 git clone https://github.com/julienbayle/starbaby
-cd starbaby/StarBabyROS/
+cd starbaby/StarBabyROS/src
+wstool update
+cd ..
 rosdep install --from-paths src --ignore-src -r -y
 catkin_make
 source devel/setup.bash
@@ -162,7 +229,6 @@ source devel/setup.bash
 ### Connect an XBOX 360 receiver
 
 Connect your XBOX 360 reciever to your computer.
-
 Turn on your XBOX 360 pad, wait it be available on /dev/input/js0
 
 ### Run Gazebo robot simulation
@@ -179,14 +245,33 @@ Then send a 2D nav goal via RVIZ to the robot and the navigation stack does the 
 
 To take back the control with the pad, push the "back" button 
 
-### Run the code using real ROBOT  
+
+## Debug the robot from a remote computer
+
+### On the Raspberry Pi
 
 ```bash
-export ROS_MASTER=http://192.168.0.17:11311
-export ROS_IP=192.168.0.10
-
-TODO TODO
-
+export ROS_MASTER=http://RASPBERRY_IP:11311
+export ROS_IP=RASPBERRY_PI
+roslaunch starbaby starbaby.launch
 ```
 
+### On the remote computer
+
+For example, to run RVIZ
+
+```bash
+export ROS_MASTER=http://RASPBERRY_IP:11311
+export ROS_IP=REMOTE_COMPUTER_PI
+rosrun rviz rviz
+```
+
+
 	
+
+
+
+
+
+
+
