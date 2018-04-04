@@ -1,0 +1,16 @@
+[Unit]
+Description=Starbaby ROS
+After=network-online.target
+
+[Service]
+Type=forking
+ 
+User=pi
+Group=pi
+UMask=007
+ 
+ExecStart=/home/pi/starbaby/StarBabyService/start.sh
+ExecStop=/home/pi/starbaby/StarBabyService/stop.sh
+
+[Install]
+WantedBy=default.target

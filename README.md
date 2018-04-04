@@ -196,6 +196,13 @@ To check everything is fine, start the main launch file
 roslaunch starbaby starbaby.launch
 ```
 
+### Startup script
+
+In order that ROS code starts automaticaly with boot process, just type:
+
+````bash
+/home/pi/starbaby/StarBabyService/install.sh
+```
 
 ## Configure a development computer
 
