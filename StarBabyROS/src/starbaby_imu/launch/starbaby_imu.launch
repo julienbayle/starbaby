@@ -1,3 +1,5 @@
 <launch>
+	<rosparam file="$(find starbaby_imu)/config/starbaby_imu.yaml" command="load"/>
+
 	<node name="starbaby_imu" pkg="starbaby_imu" type="starbaby_imu.py" output="screen" />
 </launch>
