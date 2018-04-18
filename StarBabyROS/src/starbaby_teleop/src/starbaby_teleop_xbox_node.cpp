@@ -10,9 +10,9 @@
 ros::Publisher cmd_vel_teleop_publisher;
 ros::Publisher mode_auto_publisher;
 ros::Publisher side_publisher;
+ros::Publisher laser_active_publisher;
 
 actionlib::SimpleActionClient<starbaby_calibrate::CalibrateAction> *ac;
-
 
 // note on plain values:
 // buttons are either 0 or 1
@@ -89,7 +89,18 @@ void joy_handler(const sensor_msgs::Joy::ConstPtr& joy_msg)
 	if (!joy_msg->buttons[XBOX_BUTTON_X]) {
 		calibrating = false;
 	}
+	
+	if (joy_msg->buttons[XBOX_BUTTON_RB]) {
+                std_msgs::Bool bool_msg;
+                bool_msg.data = true;
+                laser_active_publisher.publish(bool_msg);
+        }
 
+	if (joy_msg->buttons[XBOX_BUTTON_LB]) {
+                std_msgs::Bool bool_msg;
+                bool_msg.data = false;
+                laser_active_publisher.publish(bool_msg);
+        }
 	cmd_vel_teleop_publisher.publish(twist);
 }
 
@@ -115,6 +126,8 @@ int main(int argc, char **argv)
     ROS_INFO("Waiting for calibration action server to start.");
     ac->waitForServer(); //will wait for infinite time
     ROS_INFO("Calibration action server started");
+
+    laser_active_publisher = nh.advertise<std_msgs::Bool>("laser_active", 1, true);
 
     ros::spin();
 }
