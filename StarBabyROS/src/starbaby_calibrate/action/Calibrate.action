@@ -1,0 +1,14 @@
+#goal definition
+int32 mode
+---
+#result definition
+float64 delta_gz
+float64 coef_gz
+float64 coef_wheel_size
+float64 coef_wheel_distance
+---
+#feedback
+float64 delta_gz
+float64 coef_gz
+float64 coef_wheel_size
+float64 coef_wheel_distance

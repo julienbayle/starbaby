@@ -10,6 +10,9 @@ project(starbaby_teleop)
 find_package(catkin REQUIRED
 	geometry_msgs
 	sensor_msgs
+	actionlib
+	actionlib_msgs
+	starbaby_calibrate
 	roscpp
 )
 

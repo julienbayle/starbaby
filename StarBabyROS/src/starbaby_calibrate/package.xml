@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>starbaby_calibrate</name>
+  <version>0.0.1</version>
+  <description>Odometry, IMU and PID calibration tools</description>
+  <maintainer email="julienbayle@github.com">Julien BAYLE</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  
+  <build_depend>message_generation</build_depend>
+  
+  <depend>rospy</depend>
+  <depend>std_msg</depend>
+  <depend>sensor_msgs</depend>
+  <depend>actionlib_msgs</depend>
+  
+  <exec_depend>message_runtime</exec_depend>
+
+  <export></export>
+</package>

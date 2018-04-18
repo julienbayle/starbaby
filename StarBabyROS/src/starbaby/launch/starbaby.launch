@@ -47,4 +47,8 @@
 	<!-- Teleop  -->
 	<include file="$(find starbaby_teleop)/launch/starbaby_teleop.launch">
 	</include>
+
+	<!-- Calibration -->
+	<include file="$(find starbaby_calibrate)/launch/starbaby_calibrate.launch">
+	</include>
 </launch>

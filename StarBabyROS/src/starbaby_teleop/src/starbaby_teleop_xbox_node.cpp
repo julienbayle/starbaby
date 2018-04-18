@@ -3,10 +3,16 @@
 #include "geometry_msgs/Twist.h"
 #include "sensor_msgs/Joy.h"
 #include "std_msgs/Bool.h"
+#include <actionlib/client/simple_action_client.h>
+#include <actionlib/client/terminal_state.h>
+#include <starbaby_calibrate/CalibrateAction.h>
 
 ros::Publisher cmd_vel_teleop_publisher;
 ros::Publisher mode_auto_publisher;
 ros::Publisher side_publisher;
+
+actionlib::SimpleActionClient<starbaby_calibrate::CalibrateAction> *ac;
+
 
 // note on plain values:
 // buttons are either 0 or 1
@@ -38,6 +44,7 @@ ros::Publisher side_publisher;
 
 double max_linear_speed;
 double max_angular_speed;
+bool   calibrating;
 
 void joy_handler(const sensor_msgs::Joy::ConstPtr& joy_msg)
 {
@@ -68,6 +75,21 @@ void joy_handler(const sensor_msgs::Joy::ConstPtr& joy_msg)
 		side_publisher.publish(bool_msg);
 	}
 
+	if (joy_msg->buttons[XBOX_BUTTON_X] && joy_msg->buttons[XBOX_BUTTON_B] && !calibrating) {
+		calibrating = true;
+		starbaby_calibrate::CalibrateGoal goal;
+		ac->sendGoal(goal);
+	}
+	
+	if (joy_msg->buttons[XBOX_BUTTON_X] && joy_msg->buttons[XBOX_BUTTON_Y] && !calibrating) {
+		calibrating = true;
+		ac->cancelAllGoals();
+	}
+
+	if (!joy_msg->buttons[XBOX_BUTTON_X]) {
+		calibrating = false;
+	}
+
 	cmd_vel_teleop_publisher.publish(twist);
 }
 
@@ -75,6 +97,7 @@ void joy_handler(const sensor_msgs::Joy::ConstPtr& joy_msg)
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "starbaby_teleop_xbox_node");
+    ROS_INFO("Starting starbaby_teleop_xbox_node");
 
     ros::NodeHandle nh;
     ros::NodeHandle nh_priv("~");
@@ -85,8 +108,13 @@ int main(int argc, char **argv)
     cmd_vel_teleop_publisher = nh.advertise<geometry_msgs::Twist>("teleop_cmd_vel", 10);//cmd_vel_teleop
     mode_auto_publisher = nh.advertise<std_msgs::Bool>("mode_auto", 1, true);
     side_publisher = nh.advertise<std_msgs::Bool>("is_orange", 1, true);
-
     ros::Subscriber joy_subscriber = nh.subscribe<sensor_msgs::Joy>("joy", 10, joy_handler);
+    
+    ac = new actionlib::SimpleActionClient<starbaby_calibrate::CalibrateAction>(nh, "/starbaby_calibrate", true);
+    calibrating = false;
+    ROS_INFO("Waiting for calibration action server to start.");
+    ac->waitForServer(); //will wait for infinite time
+    ROS_INFO("Calibration action server started");
 
     ros::spin();
 }

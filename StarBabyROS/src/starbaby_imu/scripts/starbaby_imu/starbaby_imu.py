@@ -26,12 +26,12 @@ class imuPublisher:
         imu.orientation.y = 0
         imu.orientation.z = 0
         imu.orientation.w = 0
-        imu.linear_acceleration.x = 0 #data["ACCEL_X_FILTERED"]/4096.0*9.8
-        imu.linear_acceleration.y = 0 #data["ACCEL_Y_FILTERED"]/4096.0*9.8
-        imu.linear_acceleration.z = 0 #data["ACCEL_Z_FILTERED"]/4096.0*9.8
-        imu.angular_velocity.x = gx * math.pi/1800 #data["GYRO_X_FILTERED"]*10*math.pi/180
-        imu.angular_velocity.y = gy * math.pi/1800#data["GYRO_Y_FILTERED"]*10*math.pi/180
-        imu.angular_velocity.z = gz * math.pi/1800#data["GYRO_Z_FILTERED"]*10*math.pi/180
+        imu.linear_acceleration.x = 0
+        imu.linear_acceleration.y = 0
+        imu.linear_acceleration.z = 0
+        imu.angular_velocity.x = gx * math.pi/1800
+        imu.angular_velocity.y = gy * math.pi/1800
+        imu.angular_velocity.z = gz * math.pi/1800
 
         self.imu_pub.publish(imu)
 

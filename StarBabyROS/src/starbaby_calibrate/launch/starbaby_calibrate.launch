@@ -1,0 +1,3 @@
+<launch>
+	<node name="starbaby_calibrate" pkg="starbaby_calibrate" type="calibrate.py" output="screen" />
+</launch>
