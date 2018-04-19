@@ -113,8 +113,8 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
     ros::NodeHandle nh_priv("~");
 
-    nh_priv.param("max_linear_speed", max_linear_speed, 0.3);
-    nh_priv.param("max_angular_speed", max_angular_speed, 3.0);
+    nh_priv.param("max_linear_speed", max_linear_speed, 0.19);
+    nh_priv.param("max_angular_speed", max_angular_speed, 2.3);
 
     cmd_vel_teleop_publisher = nh.advertise<geometry_msgs::Twist>("teleop_cmd_vel", 10);//cmd_vel_teleop
     mode_auto_publisher = nh.advertise<std_msgs::Bool>("mode_auto", 1, true);
