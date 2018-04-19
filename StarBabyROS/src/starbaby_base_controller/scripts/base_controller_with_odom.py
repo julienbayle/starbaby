@@ -64,12 +64,12 @@ class simpleBaseControlerWithOdom:
         self.wheel_radius = float(rospy.get_param('wheel_radius', 0.039))  
         
         # Reduction gear : 1:70
-        # 1 motor turn = 4 encoder ticks
-        # 1 wheel turn = 70 * 4 ticks = 280 ticks
+        # 1 motor turn = 8 encoder ticks
+        # 1 wheel turn = 70 * 8 ticks = 560 ticks
         # 1 wheel turn = Pi * 78 mm = 0.245 meter
-        # tick per meter = 280 / 0.245 = 1143
-        self.tick_per_rotation = float(rospy.get_param('ticks_per_rotation', 280))  
-        self.tick_per_meter = float(rospy.get_param('ticks_per_meter', 1143))  
+        # tick per meter = 560 / 0.245 = 2286
+        self.tick_per_rotation = float(rospy.get_param('ticks_per_rotation', 560))  
+        self.tick_per_meter = float(rospy.get_param('ticks_per_meter', 2286))  
 
         # Distance between wheels
         self.base_width = float(rospy.get_param('~base_width', 0.175))
@@ -115,6 +115,9 @@ class simpleBaseControlerWithOdom:
         rospy.Subscriber("/right_wheel/counter", Int16, self.rightWheelCounterCallback)
         self.prev_counter = {}    # Last encoder counter value for each wheel in ticks
         self.d_wheel = {}         # Last distance travelled by each wheel in meters
+        self.d_wheel_speed = {"left" : 0.0, "right": 0.0}   # Low pass filtered wheel speed
+        self.d_wheel_speed_alpha = 0.7
+   
         self.pos_wheel = {"left" : 0.0, "right": 0.0}
         
     def spin(self):
@@ -139,7 +142,7 @@ class simpleBaseControlerWithOdom:
         self.d_wheel[wheel] = self.wheel_direction[wheel] * travel_in_ticks / self.tick_per_meter
         self.prev_counter[wheel] = counter
         self.pos_wheel[wheel] += travel_in_ticks * self.tick_per_rotation
-
+        
     def leftWheelCounterCallback(self, msg):
         self.updateWheelPosition("left", msg)
 
@@ -236,9 +239,12 @@ class simpleBaseControlerWithOdom:
                     Vector3(v_x, 0, 0), 
                     Vector3(0, 0, v_theta))
             self.odomPub.publish(odom)
-
-            self.leftSpeedPub.publish(self.d_wheel["left"] / d_t)
-            self.rightSpeedPub.publish(self.d_wheel["right"] / d_t)
+            
+            # low pass filter for speed to improde PID computation
+            self.d_wheel_speed["left"] = self.d_wheel["left"] * self.d_wheel_speed_alpha / d_t + self.d_wheel_speed["left"] * (1 - self.d_wheel_speed_alpha)
+            self.d_wheel_speed["right"] = self.d_wheel["right"] * self.d_wheel_speed_alpha / d_t + self.d_wheel_speed["right"] * (1 - self.d_wheel_speed_alpha)
+            self.leftSpeedPub.publish(self.d_wheel_speed["left"])
+            self.rightSpeedPub.publish(self.d_wheel_speed["right"])
             
             joint_state = JointState();
             joint_state.header.stamp = now
