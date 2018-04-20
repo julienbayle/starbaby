@@ -3,6 +3,7 @@
 #include "geometry_msgs/Twist.h"
 #include "sensor_msgs/Joy.h"
 #include "std_msgs/Bool.h"
+#include "std_msgs/Float64.h"
 #include <actionlib/client/simple_action_client.h>
 #include <actionlib/client/terminal_state.h>
 #include <starbaby_calibrate/CalibrateAction.h>
@@ -11,6 +12,7 @@ ros::Publisher cmd_vel_teleop_publisher;
 ros::Publisher mode_auto_publisher;
 ros::Publisher side_publisher;
 ros::Publisher laser_active_publisher;
+ros::Publisher launcher_publisher;
 
 actionlib::SimpleActionClient<starbaby_calibrate::CalibrateAction> *ac;
 
@@ -102,6 +104,13 @@ void joy_handler(const sensor_msgs::Joy::ConstPtr& joy_msg)
                 laser_active_publisher.publish(bool_msg);
         }
 	cmd_vel_teleop_publisher.publish(twist);
+
+	std_msgs::Float64 pwm;
+        pwm.data = -255*joy_msg->axes[XBOX_AXIS_RT];
+        if(pwm.data < 0) {
+		pwm.data = 0;
+	}
+        launcher_publisher.publish(pwm);
 }
 
 
@@ -119,6 +128,7 @@ int main(int argc, char **argv)
     cmd_vel_teleop_publisher = nh.advertise<geometry_msgs::Twist>("teleop_cmd_vel", 10);//cmd_vel_teleop
     mode_auto_publisher = nh.advertise<std_msgs::Bool>("mode_auto", 1, true);
     side_publisher = nh.advertise<std_msgs::Bool>("is_orange", 1, true);
+    launcher_publisher = nh.advertise<std_msgs::Float64>("/launcher/pwm", 1); // launcher PWM 
     ros::Subscriber joy_subscriber = nh.subscribe<sensor_msgs::Joy>("joy", 10, joy_handler);
     
     ac = new actionlib::SimpleActionClient<starbaby_calibrate::CalibrateAction>(nh, "/starbaby_calibrate", true);
