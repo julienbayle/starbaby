@@ -51,4 +51,8 @@
 	<!-- Calibration -->
 	<include file="$(find starbaby_calibrate)/launch/starbaby_calibrate.launch">
 	</include>
+
+	<!-- Launcher -->
+	<include file="$(find starbaby_launcher)/launch/starbaby_launcher.launch">
+	</include>
 </launch>

@@ -8,6 +8,6 @@
 	    <param name="coalesce_interval" value="0.0"/> <!-- seconds -->
 	</node>
 	
-	<node name="starbaby_teleop_xbox_node" pkg="starbaby_teleop" type="starbaby_teleop_xbox_node" ns="starbaby">
+	<node name="starbaby_teleop_xbox_node" pkg="starbaby_teleop" type="starbaby_teleop_xbox_node" ns="starbaby" output="screen">
 	</node>
 </launch>

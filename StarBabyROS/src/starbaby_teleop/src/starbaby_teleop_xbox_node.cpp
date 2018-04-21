@@ -7,6 +7,7 @@
 #include <actionlib/client/simple_action_client.h>
 #include <actionlib/client/terminal_state.h>
 #include <starbaby_calibrate/CalibrateAction.h>
+#include <starbaby_launcher/LauncherAction.h>
 
 ros::Publisher cmd_vel_teleop_publisher;
 ros::Publisher mode_auto_publisher;
@@ -15,6 +16,7 @@ ros::Publisher laser_active_publisher;
 ros::Publisher launcher_publisher;
 
 actionlib::SimpleActionClient<starbaby_calibrate::CalibrateAction> *ac;
+actionlib::SimpleActionClient<starbaby_launcher::LauncherAction> *ac_launcher;
 
 // note on plain values:
 // buttons are either 0 or 1
@@ -47,6 +49,8 @@ actionlib::SimpleActionClient<starbaby_calibrate::CalibrateAction> *ac;
 double max_linear_speed;
 double max_angular_speed;
 bool   calibrating;
+bool   button_b_anti_repeat;
+float  axis_rt_memory = 0;
 
 void joy_handler(const sensor_msgs::Joy::ConstPtr& joy_msg)
 {
@@ -77,6 +81,18 @@ void joy_handler(const sensor_msgs::Joy::ConstPtr& joy_msg)
 		side_publisher.publish(bool_msg);
 	}
 
+	if (joy_msg->buttons[XBOX_BUTTON_B] && !button_b_anti_repeat) {
+		button_b_anti_repeat = true;
+		starbaby_launcher::LauncherGoal goal;
+		goal.nb_balls = 8;
+		goal.speed = 230;
+		ac_launcher->sendGoal(goal);
+	}
+
+        if(!joy_msg->buttons[XBOX_BUTTON_B]) {
+		button_b_anti_repeat = false;
+	}
+
 	if (joy_msg->buttons[XBOX_BUTTON_X] && joy_msg->buttons[XBOX_BUTTON_B] && !calibrating) {
 		calibrating = true;
 		starbaby_calibrate::CalibrateGoal goal;
@@ -105,12 +121,15 @@ void joy_handler(const sensor_msgs::Joy::ConstPtr& joy_msg)
         }
 	cmd_vel_teleop_publisher.publish(twist);
 
-	std_msgs::Float64 pwm;
-        pwm.data = -255*joy_msg->axes[XBOX_AXIS_RT];
-        if(pwm.data < 0) {
-		pwm.data = 0;
+        if(joy_msg->axes[XBOX_AXIS_RT] != axis_rt_memory) {
+		std_msgs::Float64 pwm;
+        	pwm.data = -255*joy_msg->axes[XBOX_AXIS_RT];
+        	if(pwm.data < 0) {
+			pwm.data = 0;
+		}
+        	launcher_publisher.publish(pwm);
+		axis_rt_memory = joy_msg->axes[XBOX_AXIS_RT];
 	}
-        launcher_publisher.publish(pwm);
 }
 
 
@@ -136,6 +155,13 @@ int main(int argc, char **argv)
     ROS_INFO("Waiting for calibration action server to start.");
     ac->waitForServer(); //will wait for infinite time
     ROS_INFO("Calibration action server started");
+    
+    ac_launcher = new actionlib::SimpleActionClient<starbaby_launcher::LauncherAction>(nh, "/starbaby_launcher", true);
+    button_b_anti_repeat = false;
+    ROS_INFO("Waiting for launcher action server to start.");
+    ac_launcher->waitForServer(); //will wait for infinite time
+    ROS_INFO("Launcher action server started");
+
 
     laser_active_publisher = nh.advertise<std_msgs::Bool>("laser_active", 1, true);
 

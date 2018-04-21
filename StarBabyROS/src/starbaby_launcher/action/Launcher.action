@@ -1,0 +1,9 @@
+#goal definition
+uint8 speed
+uint8 nb_balls
+---
+#result definition
+uint8 nb_balls
+---
+#feedback
+uint8 nb_balls
