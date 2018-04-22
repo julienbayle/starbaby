@@ -11,7 +11,7 @@
   <build_depend>message_generation</build_depend>
   
   <depend>rospy</depend>
-  <depend>std_msg</depend>
+  <depend>std_msgs</depend>
   <depend>sensor_msgs</depend>
   <depend>actionlib_msgs</depend>
   
