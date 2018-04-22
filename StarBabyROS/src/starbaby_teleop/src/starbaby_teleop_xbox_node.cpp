@@ -48,16 +48,24 @@ actionlib::SimpleActionClient<starbaby_launcher::LauncherAction> *ac_launcher;
 
 double max_linear_speed;
 double max_angular_speed;
-bool   calibrating;
-bool   button_b_anti_repeat;
+bool   calibrating = false;
+bool   button_b_anti_repeat = false;
+bool   button_lb_anti_repeat = false;
+bool   lidar_active = true;
 float  axis_rt_memory = 0;
 
 void joy_handler(const sensor_msgs::Joy::ConstPtr& joy_msg)
 {
 	geometry_msgs::Twist twist;
-
-	twist.linear.x = joy_msg->axes[XBOX_AXIS_UP_DOWN_STICK_LEFT] * max_linear_speed;
-	twist.angular.z = joy_msg->axes[XBOX_AXIS_LEFT_RIGHT_STICK_RIGHT] * max_angular_speed;
+	if(joy_msg->buttons[XBOX_BUTTON_RB]) {
+		twist.linear.x = joy_msg->axes[XBOX_AXIS_UP_DOWN_STICK_LEFT] * max_linear_speed;
+		twist.angular.z = joy_msg->axes[XBOX_AXIS_LEFT_RIGHT_STICK_RIGHT] * max_angular_speed;
+	}
+	else {
+		twist.linear.x = joy_msg->axes[XBOX_AXIS_UP_DOWN_STICK_LEFT] * max_linear_speed / 2;
+		twist.angular.z = joy_msg->axes[XBOX_AXIS_LEFT_RIGHT_STICK_RIGHT] * max_angular_speed / 2;
+	}
+	cmd_vel_teleop_publisher.publish(twist);
 
 	if (joy_msg->buttons[XBOX_BUTTON_START]) {
 		std_msgs::Bool bool_msg;
@@ -81,7 +89,7 @@ void joy_handler(const sensor_msgs::Joy::ConstPtr& joy_msg)
 		side_publisher.publish(bool_msg);
 	}
 
-	if (joy_msg->buttons[XBOX_BUTTON_B] && !button_b_anti_repeat) {
+	if (joy_msg->buttons[XBOX_BUTTON_B] && !joy_msg->buttons[XBOX_BUTTON_X] && !button_b_anti_repeat) {
 		button_b_anti_repeat = true;
 		starbaby_launcher::LauncherGoal goal;
 		goal.nb_balls = 8;
@@ -108,18 +116,17 @@ void joy_handler(const sensor_msgs::Joy::ConstPtr& joy_msg)
 		calibrating = false;
 	}
 	
-	if (joy_msg->buttons[XBOX_BUTTON_RB]) {
-                std_msgs::Bool bool_msg;
-                bool_msg.data = true;
+	if (joy_msg->buttons[XBOX_BUTTON_LB] && !button_lb_anti_repeat) {
+                button_b_anti_repeat = true;
+		lidar_active = !lidar_active;
+		std_msgs::Bool bool_msg;
+                bool_msg.data = lidar_active;
                 laser_active_publisher.publish(bool_msg);
         }
 
-	if (joy_msg->buttons[XBOX_BUTTON_LB]) {
-                std_msgs::Bool bool_msg;
-                bool_msg.data = false;
-                laser_active_publisher.publish(bool_msg);
-        }
-	cmd_vel_teleop_publisher.publish(twist);
+	if (!joy_msg->buttons[XBOX_BUTTON_LB]) {
+		button_b_anti_repeat = false;
+	}
 
         if(joy_msg->axes[XBOX_AXIS_RT] != axis_rt_memory) {
 		std_msgs::Float64 pwm;
@@ -142,8 +149,8 @@ int main(int argc, char **argv)
     ros::NodeHandle nh_priv("~");
 
     nh_priv.param("max_linear_speed", max_linear_speed, 0.19);
-    nh_priv.param("max_angular_speed", max_angular_speed, 2.3);
-
+    nh_priv.param("max_angular_speed", max_angular_speed, 1.8);
+    
     cmd_vel_teleop_publisher = nh.advertise<geometry_msgs::Twist>("teleop_cmd_vel", 10);//cmd_vel_teleop
     mode_auto_publisher = nh.advertise<std_msgs::Bool>("mode_auto", 1, true);
     side_publisher = nh.advertise<std_msgs::Bool>("is_orange", 1, true);
@@ -151,17 +158,14 @@ int main(int argc, char **argv)
     ros::Subscriber joy_subscriber = nh.subscribe<sensor_msgs::Joy>("joy", 10, joy_handler);
     
     ac = new actionlib::SimpleActionClient<starbaby_calibrate::CalibrateAction>(nh, "/starbaby_calibrate", true);
-    calibrating = false;
     ROS_INFO("Waiting for calibration action server to start.");
     ac->waitForServer(); //will wait for infinite time
     ROS_INFO("Calibration action server started");
     
     ac_launcher = new actionlib::SimpleActionClient<starbaby_launcher::LauncherAction>(nh, "/starbaby_launcher", true);
-    button_b_anti_repeat = false;
     ROS_INFO("Waiting for launcher action server to start.");
     ac_launcher->waitForServer(); //will wait for infinite time
     ROS_INFO("Launcher action server started");
-
 
     laser_active_publisher = nh.advertise<std_msgs::Bool>("laser_active", 1, true);
 
