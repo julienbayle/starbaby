@@ -1,14 +1,13 @@
 #goal definition
-int32 mode
+bool imu
+bool odometry
 ---
 #result definition
-float64 delta_gz
-float64 coef_gz
-float64 coef_wheel_size
-float64 coef_wheel_distance
+float64 imu_gz_biais_correction_value
+float64 imu_gz_coef_correction_factor
+float64 wheel_size_correction_factor
+float64 wheel_interval_factor
 ---
 #feedback
-float64 delta_gz
-float64 coef_gz
-float64 coef_wheel_size
-float64 coef_wheel_distance
+string current_step
+float64 step_progress
