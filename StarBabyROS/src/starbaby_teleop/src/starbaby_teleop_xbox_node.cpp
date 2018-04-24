@@ -94,6 +94,7 @@ void joy_handler(const sensor_msgs::Joy::ConstPtr& joy_msg)
 		starbaby_launcher::LauncherGoal goal;
 		goal.nb_balls = 8;
 		goal.speed = 230;
+		ac_launcher->cancelAllGoals();
 		ac_launcher->sendGoal(goal);
 	}
 
