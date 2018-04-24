@@ -213,9 +213,9 @@ class simpleBaseControlerWithOdom:
             v_theta = d_theta / d_t
                       
             # calculate robot position in odom frame
-            self.x = self.x + ( cos( self.theta ) * d_x )
-            self.y = self.y + ( sin( self.theta ) * d_x )
-            self.theta = self.theta + d_theta
+            self.x += cos( self.theta ) * d_x
+            self.y += sin( self.theta ) * d_x
+            self.theta += d_theta
             
             # publish the odom and TF
             
