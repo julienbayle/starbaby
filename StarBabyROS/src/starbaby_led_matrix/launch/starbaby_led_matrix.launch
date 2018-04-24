@@ -1,0 +1,3 @@
+<launch>
+	<node name="starbaby_led_matrix" pkg="starbaby_led_matrix" type="led_matrix.py" output="screen" />
+</launch>
