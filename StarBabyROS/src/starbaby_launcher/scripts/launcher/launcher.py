@@ -49,6 +49,10 @@ class starbabyLauncher:
           rospy.sleep(0.01)
 
         while self.nb_balls < goal.nb_balls:
+          if self._as.is_preempt_requested():
+                rospy.loginfo('%s: Preempted' % self._action_name)
+                self._as.set_preempted()
+                break
           rospy.loginfo("Loading a ball in the launcher")
           self.waiting_ball = True
 
