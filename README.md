@@ -188,6 +188,14 @@ Should return :
 70: -- -- -- -- -- -- -- --
 ```
 
+#### Add python library for LED MATRIX
+
+*starbaby_led_matrix* package depends on *luma.led_matrix* python package
+
+```bash
+pip install luma.led_matrix
+```
+ 
 ### Run 
 
 To check everything is fine, start the main launch file
