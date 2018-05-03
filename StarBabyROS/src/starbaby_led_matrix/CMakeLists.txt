@@ -9,6 +9,11 @@ find_package(catkin REQUIRED COMPONENTS
 
 catkin_python_setup()
 
+add_message_files(
+  FILES
+  Eye.msg
+)
+
 generate_messages(
   DEPENDENCIES std_msgs
 )
@@ -16,4 +21,3 @@ generate_messages(
 catkin_package(
   CATKIN_DEPENDS message_runtime
 )
-
