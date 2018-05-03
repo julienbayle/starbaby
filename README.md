@@ -273,8 +273,45 @@ export ROS_IP=REMOTE_COMPUTER_PI
 rosrun rviz rviz
 ```
 
+## VIM autocomplete for ROS
 
+Install dependencies (VIM autocomplet and VIM-Plug)
+
+```bash
+sudo apt-get install vim-nox-py2
+curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+```
+
+Edit VIMRC (~/.vimrc) and add this :
+ 
+```
+let g:ycm_semantic_triggers = {
+			\   'roslaunch' : ['="', '$(', '/'],
+			\   'rosmsg,rossrv,rosaction' : ['re!^', '/'],
+			\ }
+
+call plug#begin('~/.vim/plugged')
+
+" VIM ROS
+Plug 'taketwo/vim-ros'
+
+" You complete me
+Plug 'Valloric/YouCompleteMe'
+
+" Initialize plugin system
+call plug#end()
+```
 	
+Open VIM and type ":PluginsInstall"
+
+To finish *YouCompleteMe* install, we have to compile some dependencies by hand :
+
+```bash
+cd .vim/plugged/YouCompleteMe/
+sudo swapon /file.swap
+./install.py
+sudo swapoff /file.swap 
+```
 
 
 
