@@ -72,7 +72,7 @@ class simpleBaseControlerWithOdom:
         self.tick_per_meter = float(rospy.get_param('ticks_per_meter', 2286))  
 
         # Distance between wheels
-        self.base_width = float(rospy.get_param('~base_width', 0.175))
+        self.base_width = float(rospy.get_param('~base_width', 0.154))
 
         # Name of the base frame of the robot
         self.base_frame_id = rospy.get_param('~base_frame_id','base_link') 
