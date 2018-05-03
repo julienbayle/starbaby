@@ -15,10 +15,10 @@
 	<include file="$(find starbaby_state)/launch/starbaby_state.launch">
 	</include>
 	
-	<!-- Control  -->
+	<!-- Control 
 	<include file="$(find starbaby_control)/launch/starbaby_control.launch">
 		<arg name="sim" value="$(arg sim)"/>
-	</include>
+	</include -->
 	
 	<!-- IMU -->
 	<include file="$(find starbaby_imu)/launch/starbaby_imu.launch">
@@ -28,21 +28,21 @@
 	<include file="$(find xv_11_laser_motor_control)/launch/xv_11_laser.launch">
 	</include>
 	
-	<!-- Sensor  -->
+	<!-- Sensor
 	<include file="$(find starbaby_sensor)/launch/starbaby_sensor.launch">
-	</include>
+	</include -->
 	
-	<!-- Trilateration  -->
+	<!-- Trilateration
 	<include file="$(find starbaby_trilateration)/launch/starbaby_trilateration.launch">
-	</include>
+	</include -->
 	
-	<!-- Localization  -->
+	<!-- Localization
 	<include file="$(find starbaby_localization)/launch/starbaby_localization.launch">
-	</include>
+	</include -->
 	
-	<!-- Navigation  -->
+	<!-- Navigation
 	<include file="$(find starbaby_navigation)/launch/starbaby_navigation.launch">
-	</include>
+	</include -->
 	
 	<!-- Teleop  -->
 	<include file="$(find starbaby_teleop)/launch/starbaby_teleop.launch">
@@ -55,4 +55,5 @@
 	<!-- Launcher -->
 	<include file="$(find starbaby_launcher)/launch/starbaby_launcher.launch">
 	</include>
+
 </launch>
