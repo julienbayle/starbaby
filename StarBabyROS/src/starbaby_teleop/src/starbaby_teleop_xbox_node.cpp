@@ -49,8 +49,8 @@ actionlib::SimpleActionClient<starbaby_launcher::LauncherAction> *ac_launcher;
 double max_linear_speed;
 double max_angular_speed;
 bool   calibrating = false;
-bool   button_b_anti_repeat = false;
-bool   button_lb_anti_repeat = false;
+int   button_b_anti_repeat = 0;
+int   button_lb_anti_repeat = 0;
 bool   lidar_active = true;
 float  axis_rt_memory = 0;
 
@@ -90,7 +90,7 @@ void joy_handler(const sensor_msgs::Joy::ConstPtr& joy_msg)
 	}
 
 	if (joy_msg->buttons[XBOX_BUTTON_B] && !joy_msg->buttons[XBOX_BUTTON_X] && !button_b_anti_repeat) {
-		button_b_anti_repeat = true;
+		button_b_anti_repeat = 10;
 		starbaby_launcher::LauncherGoal goal;
 		goal.nb_balls = 8;
 		goal.speed = 230;
@@ -98,8 +98,8 @@ void joy_handler(const sensor_msgs::Joy::ConstPtr& joy_msg)
 		ac_launcher->sendGoal(goal);
 	}
 
-        if(!joy_msg->buttons[XBOX_BUTTON_B]) {
-		button_b_anti_repeat = false;
+        if(!joy_msg->buttons[XBOX_BUTTON_B] && button_b_anti_repeat > 0) {
+		button_b_anti_repeat--;
 	}
 
 	if (joy_msg->buttons[XBOX_BUTTON_X] && joy_msg->buttons[XBOX_BUTTON_B] && !calibrating) {
@@ -118,15 +118,15 @@ void joy_handler(const sensor_msgs::Joy::ConstPtr& joy_msg)
 	}
 	
 	if (joy_msg->buttons[XBOX_BUTTON_LB] && !button_lb_anti_repeat) {
-                button_b_anti_repeat = true;
+                button_lb_anti_repeat = 10;
 		lidar_active = !lidar_active;
 		std_msgs::Bool bool_msg;
                 bool_msg.data = lidar_active;
                 laser_active_publisher.publish(bool_msg);
         }
 
-	if (!joy_msg->buttons[XBOX_BUTTON_LB]) {
-		button_b_anti_repeat = false;
+	if (!joy_msg->buttons[XBOX_BUTTON_LB] && button_lb_anti_repeat > 0) {
+		button_lb_anti_repeat--;
 	}
 
         if(joy_msg->axes[XBOX_AXIS_RT] != axis_rt_memory) {
