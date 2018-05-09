@@ -56,4 +56,12 @@
 	<include file="$(find starbaby_launcher)/launch/starbaby_launcher.launch">
 	</include>
 
+	<!-- LCD Matrix / Eyes-->
+	<include file="$(find starbaby_led_matrix)/launch/starbaby_led_matrix.launch">
+	</include>
+
+	<!-- Main node -->
+	<include file="$(find starbaby)/launch/homologation.launch">
+	</include>
+
 </launch>

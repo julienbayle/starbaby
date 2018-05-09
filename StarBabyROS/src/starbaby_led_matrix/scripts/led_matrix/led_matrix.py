@@ -20,14 +20,17 @@ from luma.core.legacy import text, show_message
 from luma.core.legacy.font import proportional, CP437_FONT, TINY_FONT, SINCLAIR_FONT, LCD_FONT
 from luma.core.sprite_system import framerate_regulator
 from starbaby_led_matrix.msg import Eye
+from std_msgs.msg import Bool
 from luma.core.render import canvas
 
 class RobotEye:
     def __init__(self, img_path):
         rospy.init_node("starbaby_led_matrix")
+        self.default_text = "?"
         self.repeat=0
         self.img_path = img_path
         rospy.Subscriber("/starbaby/eye", Eye, self.execute_msg_cb)
+        rospy.Subscriber("/is_orange",Bool, self.execute_side_cb)
         serial = spi(port=0, device=0, gpio=noop())
         self.device = max7219(serial, width=32, height=8)
         self.device.contrast(0x10)
@@ -46,6 +49,12 @@ class RobotEye:
             rotated_block = image.crop(box).rotate(-90)
             image.paste(rotated_block, box)
         return image
+
+    def execute_side_cb(self, msg):
+        if msg.data:
+            self.default_text = "Orange"
+        else:
+            self.default_text = "Vert"
 
     def execute_msg_cb(self, msg):
         # If text message is the name of an existing GIF then
@@ -84,10 +93,10 @@ class RobotEye:
                             with canvas(self.device) as draw:
                                 for i in range(32):
                                     for j in range(8):
-                                        if b[i,j]:
-                                            draw.point((i, j), fill="black")
-                                        else:
+                                        if b[i,j]<0.5:
                                             draw.point((i, j), fill="white")
+                                        else:
+                                            draw.point((i, j), fill="black")
                             #self.device.display(frame.convert(self.device.mode))
                             #self.device.display(background.convert(self.device.mode))
                 
@@ -95,7 +104,7 @@ class RobotEye:
 
             # Display default robot eye behaviour
             else:
-                show_message(self.device, "WWMM", fill="white", font=proportional(CP437_FONT))
+                show_message(self.device, self.default_text, fill="white", font=proportional(CP437_FONT))
 
 
 if __name__ == "__main__":

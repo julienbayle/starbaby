@@ -1,0 +1,4 @@
+<launch>
+	<node name="homologation" pkg="starbaby" type="homologation.py" output="screen">
+	</node>
+</launch>
