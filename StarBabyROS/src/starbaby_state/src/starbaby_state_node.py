@@ -8,7 +8,7 @@ import smach_ros
 from std_msgs.msg import Bool
 from geometry_msgs.msg import Twist
 
-mode_auto = False
+mode_auto = True 
 
 cmd_vel_publisher = None
 
