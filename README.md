@@ -1,6 +1,9 @@
 StarBaby
 ================================
 
+> **This repository has been archived in october 2018.**\
+> **New version of the project (Eurobot 2019) is here : https://github.com/julienbayle/stardust**
+
 ## Introduction
 
 This is the main program of the StarBaby robot for Eurobot 2018.
