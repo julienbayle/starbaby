@@ -32,18 +32,17 @@ class Homologation:
         self.visual_delay = visual_delay
         self.d_sonar_side = {}
         rospy.init_node('Homologation')
-        rospy.Subscriber('/range/side', Range, self.gap_cb)
-        rospy.Subscriber('/sonar/center', Range, self.sonar_center_cb)
-        rospy.Subscriber('/sonar/left', Range, self.sonar_left_cb)
-        rospy.Subscriber('/sonar/right', Range, self.sonar_right_cb)
-        rospy.Subscriber('/starbaby/odom', Odometry, self.pose_cb)
-        rospy.Subscriber('/ils', Bool, self.ils_cb)
-        self.cmd_pub = rospy.Publisher('/starbaby/auto_cmd_vel', Twist, queue_size=10)
-        self.servo_pub = rospy.Publisher('/servo/front', UInt8, queue_size=10)
+	rospy.Subscriber('/range/side', Range, self.gap_cb)
+	rospy.Subscriber('/sonar/center', Range, self.sonar_center_cb)
+	rospy.Subscriber('/sonar/left', Range, self.sonar_left_cb)
+	rospy.Subscriber('/sonar/right', Range, self.sonar_right_cb)
+	rospy.Subscriber('/starbaby/odom', Odometry, self.pose_cb)
+	rospy.Subscriber('/ils', Bool, self.ils_cb)
+	self.cmd_pub = rospy.Publisher('/starbaby/auto_cmd_vel', Twist, queue_size=10)
+	self.servo_pub = rospy.Publisher('/servo/front', UInt8, queue_size=10)
         self.side_pub = rospy.Publisher('/is_orange', Bool, queue_size=10)
-        self.eye_pub = rospy.Publisher('/starbaby/eye', Eye, queue_size=1)
+        self.eye_pub = rospy.Publisher('/starbaby/eye', Eye, queue_size=10)
         self.mode_pub = rospy.Publisher('/starbaby/mode_auto', Bool, queue_size=10)
-        self.default_eye_pub = rospy.Publisher('/default_eye', Eye, queue_size=10)
         self.mode_pub.publish(True)
 
     def pose_cb(self,odom_data):
@@ -97,12 +96,7 @@ class Homologation:
         client.wait_for_result()
         launcherResult = client.get_result()
         rospy.loginfo("Nb balles envoyees %d", launcherResult.nb_balls)
-        
-        goal = LauncherGoal(nb_balls=0, speed=0)
-        client.send_goal(goal)
-        client.wait_for_result()
-        rospy.loginfo("Arret launcher")
-        
+
     def open_arm(self):
         # ILS = break
         if self.cancel_requested():
@@ -117,7 +111,7 @@ class Homologation:
             rospy.loginfo("Skip close arm action as cancel is requested")
             return
         
-        self.servo_pub.publish(174)
+        self.servo_pub.publish(177)
 
     def move(self, 
             d_x = 0,        # Distance
@@ -227,7 +221,7 @@ class Homologation:
         twist = Twist()
         self.cmd_pub.publish(twist)
         rospy.sleep(0.2) # Minimum delay for PID to purge (disable when speed is nul)
-        rospy.sleep(self.visual_delay)
+	rospy.sleep(self.visual_delay)
         rospy.loginfo("Robot stopped")
 
     def principal_angle(self, a):
@@ -235,13 +229,7 @@ class Homologation:
 
     def show_text(self, text, fps=50, repeat=1):
         self.eye_pub.publish(Eye(text=text, fps=fps, repeat=repeat))
-
-    def show_eye(self, name, repeat=1):
-        self.eye_pub.publish(Eye(text=name, fps=24, repeat=repeat))
-
-    def show_default_eye(self, name, repeat=1):
-        self.default_eye_pub.publish(Eye(text=name, fps=24))
-
+        
     def wait_ils_off(self):
         rgap = 0;
         ils_loop_count = 0.0001 # Div/0 is cancel is requested previously
@@ -251,6 +239,7 @@ class Homologation:
             ils_loop_count += 1
             if not self.ils:
                 ils_count += 1
+            self.show_text("-O-")
             rospy.sleep(0.1)
         return rgap / ils_loop_count
     
@@ -264,7 +253,6 @@ class Homologation:
     def set_side(self, name):
         self.color = name
         self.side_pub.publish(self.color == "orange")
-        self.show_default_eye(self.color)
 
     def start(self):
         self.start_time = rospy.Time.now()
@@ -287,28 +275,22 @@ class Homologation:
 
 if __name__=="__main__":
     try:
-        robot = Homologation(0)
+	robot = Homologation(0)
         
         while not rospy.is_shutdown():
             # Eviter un shutdown si lenteur tirette 
             robot.start()
-
-            robot.show_default_eye("what.gif")
             while not robot.is_ready() and not rospy.is_shutdown() :
                 rospy.loginfo("Waiting for all subscribers")
                 rospy.sleep(0.2)
             rospy.loginfo("All subscribers ready")
 
-            robot.show_default_eye("cry.gif")
+            robot.set_side("vert")
             rospy.loginfo("Attente tirette")
             robot.wait_ils_on()
-            robot.set_side("vert")
-            robot.stop()
-            rospy.sleep(0.5)
-
-            robot.close_arm()
+            robot.close_arm() 
             rospy.loginfo("Tirette OK")
-            
+            robot.close_arm()            
             side_choosen = False
             rgap = 0.05
             while not side_choosen and not rospy.is_shutdown():
@@ -325,13 +307,13 @@ if __name__=="__main__":
             score = 5
             slow_speed = 0.08
             robot.start()
-            robot.show_default_eye("blink.gif")
+
             rotate = 1
             if robot.color == "vert":
                 rotate = -1
-
+        
             # On va lancer l'abeille en evitant les cubes
-            robot.move(d_x=0.465)
+            robot.move(d_x=0.475)
             robot.move(d_yaw=90*rotate)
             robot.move(d_x=0.93)
             robot.move(d_yaw=90*rotate)
@@ -341,9 +323,6 @@ if __name__=="__main__":
             robot.move(d_yaw=-75*rotate)
 
             robot.move(d_x=-0.1)
-
-            robot.show_default_eye("cute.gif")
-            
             robot.open_arm()
             rospy.sleep(0.5)
             robot.move(d_x=0.6, sonar_exit=0.16, sonar_stop=-1)
@@ -354,28 +333,38 @@ if __name__=="__main__":
 
             score += 50
             
+            #robot.move(d_x=-0.2, v_x_max=0.66, d_yaw=45*rotate, v_yaw_max=0.26)
+            #robot.move(d_x=-0.2, v_x_max=0.66, d_yaw=45*rotate, v_yaw_max=0.26)
+            #robot.move(d_x=0.4, sonar_exit=0.03, sonar_stop=-1)
+            robot.move(d_yaw=90*rotate)
+            robot.move(d_yaw=90*rotate)
+            #robot.move(d_x=0.12, sonar_stop=-1)
+            #robot.move(d_x=-0.03, sonar_stop=-1)
+            #robot.move(d_yaw=80)
+            #robot.move(d_x=0.12, sonar_stop=-1)
 
-            robot.show_default_eye("japan.gif")
-
-            robot.move(d_x=-0.3)
-            robot.move(d_yaw=95*rotate )
-            robot.move(d_x=0.15, v_x_max=0.08, sonar_stop=-1)
-            robot.move(d_x=-0.03, sonar_stop=-1)
-            robot.move(d_yaw=90*rotate, v_yaw_max=0.5)
+            # robot.move(d_x=2, v_x_max=0.2, gap_goal = rgap)
+            # On charge les balles
+            # robot.move(d_x=-0.15, v_x_max=0.08, gap_goal = rgap)
+            # for i in range(3):
+            #     robot.move(d_x=0.09, v_x_max=0.08, gap_goal = rgap)
+            #     robot.move(d_x=-0.09, v_x_max=0.08, gap_goal = rgap)
             
-            if robot.color == "orange": 
-                robot.move(d_x=0.100, v_x_max=0.08, sonar_stop=-1)
-                robot.move(d_yaw=135*rotate, v_yaw_max=0.5)
-                robot.move(d_x=0.6)
-                robot.move(d_yaw=-80*rotate, v_yaw_max=0.5)
-
-                robot.send_balls(3)
+            # On sort de dessous le recuperateur
+            # robot.move(d_x=-0.2, v_x_max=0.08, gap_goal = rgap, gap_max_error=0.04)
+            # robot.move(d_yaw=180, sonar_stop=-1)
+            
+            # rospy.sleep(1)
+           
+            # On va tirer les balles
+            #robot.move(d_yaw=140, sonar_stop=-1)
+            #robot.move(d_x=1, v_x_max=0.18)
+            #robot.move(d_yaw=30, sonar_stop=-1)
+            #robot.send_balls(8)
             
             while not robot.ils and not rospy.is_shutdown():
-                rospy.loginfo("Score %d", score)
                 robot.show_text("%d pts" % (score), 20, 1)
                 rospy.sleep(1)
             
-        robot.show_default_eye("what.gif")
     except KeyboardInterrupt:
         pass

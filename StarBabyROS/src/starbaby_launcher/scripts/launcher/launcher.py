@@ -26,6 +26,7 @@ class starbabyLauncher:
         self._as = actionlib.SimpleActionServer(self._action_name, LauncherAction, execute_cb = self.execute_cb, auto_start = False)
         self._as.start()
 
+        self.last_speed = 0
         rospy.loginfo("Waiting for inputs messages...")
 	self.launcher_speed_sub = rospy.Subscriber('/launcher/counter', Int16, self.execute_speed_cb)
         self.launcher_pub = rospy.Publisher('/launcher/pwm', Float64, queue_size=10)
@@ -40,13 +41,12 @@ class starbabyLauncher:
         self.std_dev_speed = 0
         self.nb_speed = 0
         
-        rospy.loginfo("Starting launcher...")
-        
-        last_speed = 0
-        for speed in range (80, goal.speed, 2):
-          self.launcher_pub.publish(speed)
-          last_speed = speed
-          rospy.sleep(0.01)
+        if goal.speed > 0: 
+            rospy.loginfo("Starting launcher...")
+            for speed in range (self.last_speed, goal.speed, 2):
+              self.launcher_pub.publish(speed)
+              self.last_speed = goal.speed
+              rospy.sleep(0.01)
 
         while self.nb_balls < goal.nb_balls:
           if self._as.is_preempt_requested():
@@ -57,9 +57,9 @@ class starbabyLauncher:
           self.waiting_ball = True
 
           self.servo_launcher_pub.publish(170)
-          rospy.sleep(0.5)
+          rospy.sleep(0.7)
           self.servo_launcher_pub.publish(50)
-          rospy.sleep(0.5)
+          rospy.sleep(0.3)
         
           #if self.waiting_ball:
           #  rospy.loginfo("No ball thrown")
@@ -68,14 +68,15 @@ class starbabyLauncher:
           #  rospy
           self.waiting_ball = False
         
-        rospy.sleep(1)
-        rospy.loginfo("Stopping launcher...")
+        if goal.speed == 0 and goal.nb_balls == 0:
+            rospy.loginfo("Stopping launcher...")
         
-        for speed in range (last_speed, 0, -2):
-          self.launcher_pub.publish(speed)
-          rospy.sleep(0.01)
-
-        rospy.loginfo("Launcher stopped")
+            for speed in range (self.last_speed, 0, -2):
+              self.launcher_pub.publish(speed)
+              rospy.sleep(0.01)
+            
+            self.last_speed = 0
+            rospy.loginfo("Launcher stopped")
 
         rospy.loginfo("%d ball(s) thrown", self.nb_balls)
         self.result.nb_balls = self.nb_balls

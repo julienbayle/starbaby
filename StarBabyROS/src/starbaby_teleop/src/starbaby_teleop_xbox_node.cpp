@@ -49,8 +49,11 @@ actionlib::SimpleActionClient<starbaby_launcher::LauncherAction> *ac_launcher;
 double max_linear_speed;
 double max_angular_speed;
 bool   calibrating = false;
+bool  last_mode = true;
 int   button_b_anti_repeat = 0;
+int   button_a_anti_repeat = 0;
 int   button_lb_anti_repeat = 0;
+int   launcher_last_speed = 230;
 bool   lidar_active = true;
 float  axis_rt_memory = 0;
 
@@ -80,21 +83,33 @@ void joy_handler(const sensor_msgs::Joy::ConstPtr& joy_msg)
 
 	if (joy_msg->buttons[XBOX_BUTTON_Y]) {
 		std_msgs::Bool bool_msg;
-		bool_msg.data = true;
+		bool_msg.data = !last_mode;
+		last_mode = !last_mode;
 		side_publisher.publish(bool_msg);
 	}
-	if (joy_msg->buttons[XBOX_BUTTON_A]) {
-		std_msgs::Bool bool_msg;
-		bool_msg.data = false;
-		side_publisher.publish(bool_msg);
+	if (joy_msg->buttons[XBOX_BUTTON_A] && !button_a_anti_repeat ) {
+		button_a_anti_repeat = 10;
+		starbaby_launcher::LauncherGoal goal;
+		goal.nb_balls = 1;
+		goal.speed = 0;
+		ac_launcher->sendGoal(goal);
 	}
+        
+	if(!joy_msg->buttons[XBOX_BUTTON_A] && button_a_anti_repeat > 0) {
+		button_a_anti_repeat--;
+	}
+
 
 	if (joy_msg->buttons[XBOX_BUTTON_B] && !joy_msg->buttons[XBOX_BUTTON_X] && !button_b_anti_repeat) {
 		button_b_anti_repeat = 10;
 		starbaby_launcher::LauncherGoal goal;
-		goal.nb_balls = 8;
-		goal.speed = 230;
-		ac_launcher->cancelAllGoals();
+		goal.nb_balls = 0;
+		goal.speed = launcher_last_speed;
+		if (launcher_last_speed == 250) { launcher_last_speed = 0; }
+		else if (launcher_last_speed == 240) { launcher_last_speed = 250; }
+		else if (launcher_last_speed == 230) { launcher_last_speed = 240; }
+		else if (launcher_last_speed == 0) { launcher_last_speed = 230; }
+			
 		ac_launcher->sendGoal(goal);
 	}
 

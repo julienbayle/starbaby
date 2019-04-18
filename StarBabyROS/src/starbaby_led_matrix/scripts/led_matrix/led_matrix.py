@@ -27,10 +27,13 @@ class RobotEye:
     def __init__(self, img_path):
         rospy.init_node("starbaby_led_matrix")
         self.default_text = "?"
+        self.default_image = None
+        self.default_fps = 24
         self.repeat=0
         self.img_path = img_path
         rospy.Subscriber("/starbaby/eye", Eye, self.execute_msg_cb)
         rospy.Subscriber("/is_orange",Bool, self.execute_side_cb)
+        rospy.Subscriber("/default_eye",Eye, self.execute_default_eye_cb)
         serial = spi(port=0, device=0, gpio=noop())
         self.device = max7219(serial, width=32, height=8)
         self.device.contrast(0x10)
@@ -56,6 +59,16 @@ class RobotEye:
         else:
             self.default_text = "Vert"
 
+    def execute_default_eye_cb(self, msg):
+        self.default_text = msg.text
+        img_path = os.path.join(self.img_path, self.default_text)
+        if os.path.isfile(img_path):
+            self.default_image = Image.open(img_path)
+            self.default_text = ""
+
+        self.default_fps = msg.fps or 24
+        rospy.loginfo("Default Eye message received %s, %s, %d", self.default_text, self.default_image, self.default_fps)
+
     def execute_msg_cb(self, msg):
         # If text message is the name of an existing GIF then
         # display the animated GIF
@@ -75,36 +88,35 @@ class RobotEye:
             
             # A specific message should be displayed
             if self.repeat:
-
-                # Display text message
-                if self.text:
-                    show_message(self.device, self.text, fill="white", font=proportional(CP437_FONT), scroll_delay=1/float(self.fps))    
-
-                # Display animated GIF
-                else:
-                    regulator = framerate_regulator(fps=self.fps)
-                    for frame in ImageSequence.Iterator(self.image):
-                        with regulator:
-                            #background = Image.new("RGB", self.device.size, "white")
-                            #background.paste(frame.resize((32,8), resample=Image.LANCZOS), (0,0))
-                            #background.paste(frame)
-                            b = frame.load()
-                            #m =  [""] * 8
-                            with canvas(self.device) as draw:
-                                for i in range(32):
-                                    for j in range(8):
-                                        if b[i,j]<0.5:
-                                            draw.point((i, j), fill="white")
-                                        else:
-                                            draw.point((i, j), fill="black")
-                            #self.device.display(frame.convert(self.device.mode))
-                            #self.device.display(background.convert(self.device.mode))
-                
+                text = self.text
+                fps = self.fps
+                if not text:
+                    image = self.image
                 self.repeat -= 1
-
-            # Display default robot eye behaviour
             else:
-                show_message(self.device, self.default_text, fill="white", font=proportional(CP437_FONT))
+                text = self.default_text
+                fps = self.default_fps
+                if not text:
+                    image = self.default_image
+
+            # Display text message
+            if text:
+                show_message(self.device, text, fill="white", font=proportional(CP437_FONT), scroll_delay=1/float(fps))    
+
+            # Display animated GIF
+            else:
+                regulator = framerate_regulator(fps=fps)
+                for frame in ImageSequence.Iterator(image):
+                    with regulator:
+                        b = frame.load()
+                        #m =  [""] * 8
+                        with canvas(self.device) as draw:
+                            for i in range(32):
+                                for j in range(8):
+                                    if b[i,j]<0.5:
+                                        draw.point((i, j), fill="black")
+                                    else:
+                                        draw.point((i, j), fill="white")
 
 
 if __name__ == "__main__":
